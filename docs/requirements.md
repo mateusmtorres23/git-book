@@ -2,7 +2,7 @@
 
 Base de trabalho do projeto da disciplina de Desenvolvimento Web, revisada em 27/10/2026. O professor deixou o formato da entrega em aberto.
 
-**Estado: proposta para revisão da equipe.** Este catálogo descreve comportamento desejado; não significa que cada requisito esteja implementado ou aprovado individualmente. Escolhas ainda não resolvidas estão em [Decisões e pendências](decisoes.md).
+**Estado: proposta para revisão da equipe.** Este catálogo descreve comportamento desejado; não significa que cada requisito esteja implementado ou aprovado individualmente. Escolhas ainda não resolvidas estão em [Decisões e pendências](decisions.md).
 
 ## 1. Problema e objetivo
 
