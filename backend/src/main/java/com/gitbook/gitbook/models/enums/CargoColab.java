@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.entity.enums;
+package com.gitbook.gitbook.models.enums;
 
 public enum CargoColab {
     AUTOR,

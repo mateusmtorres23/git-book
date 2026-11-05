@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.entity;
+package com.gitbook.gitbook.models;
 
 import com.gitbook.gitbook.entity.enums.CargoColab;
 import jakarta.persistence.*;

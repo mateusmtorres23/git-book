@@ -1,6 +1,6 @@
 package com.gitbook.gitbook.repository;
 
-import com.gitbook.gitbook.entity.ColaboraEm;
+import com.gitbook.gitbook.models.ColaboraEm;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
