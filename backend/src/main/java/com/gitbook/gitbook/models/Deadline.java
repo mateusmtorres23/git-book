@@ -1,6 +1,6 @@
 package com.gitbook.gitbook.models;
 
-import com.gitbook.gitbook.entity.enums.StatusTask;
+import com.gitbook.gitbook.models.enums.StatusTask;
 import jakarta.persistence.*;
 
 import java.util.UUID;
