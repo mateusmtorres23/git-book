@@ -20,7 +20,6 @@ O sucesso da entrega acadêmica será demonstrado por um fluxo completo: cadastr
 | [Protótipo](prototype/index.html) | Telas, navegação e exemplos de interação | Dados e autenticação simulados não comprovam regras implementadas |
 | MER enviado: `modeloER_gitbook (1).pdf` | Entidades, relacionamentos e conteúdo versionado | Referência externa ao repositório; divergências em DEC-03 a DEC-06 |
 | [SQL](db/tables.sql) | Restrições e estrutura relacional propostas | Não sincronizado com o MER nem instalado como migração |
-| Requisito anterior deste arquivo | Unicidade da colaboração por usuário/livro | Preservado na RN-02 |
 | Planejamento e README do Simulacred | Organização por histórias, critérios e responsabilidades | Seu escopo, stack e instruções não são requisitos do Gitbook |
 
 ## 3. Atores e vocabulário
@@ -35,10 +34,9 @@ O sucesso da entrega acadêmica será demonstrado por um fluxo completo: cadastr
 | Main | Branch que representa o conteúdo oficial consolidado |
 | Branch | Linha de trabalho de uma obra, iniciada a partir de uma versão identificável |
 | Commit | Registro imutável de uma versão, com autoria, instante, mensagem e relação com versões anteriores |
-| Merge request / pull request | Solicitação de integração de alterações de uma branch à main; os dois nomes representam o mesmo conceito nesta base |
+| Pull Request | Solicitação de integração de alterações de uma branch à main; os dois nomes representam o mesmo conceito nesta base |
 | Sugestão | Proposta de substituição de um trecho, vinculada ao capítulo e à versão analisada |
 
-**Hipótese:** papéis são definidos por livro; o dono exerce a função de gestor. Uma pessoa pode gerir uma obra e revisar outra. Ratificar em DEC-01; o seletor global do protótipo não define a autorização real.
 
 ## 4. Escopo e prioridades propostas
 
@@ -62,19 +60,19 @@ Regras propostas para as histórias, sujeitas às decisões indicadas. RN-02 pre
 
 | ID | Regra |
 | --- | --- |
-| RN-01 | Acesso ao conteúdo e operações de um livro exige vínculo autorizado. A permissão considera o livro solicitado, não um papel enviado livremente pelo cliente. |
+| RN-01 | Acesso ao conteúdo e operações de um livro exige autorização. |
 | RN-02 | Um usuário só pode ser registrado uma vez como colaborador de um livro. O par `(id_usuario, id_livro)` deve ser único, inclusive sob requisições concorrentes. O SQL propõe `uq_colaboracao_usuario_livro` em `colabora_em`. |
-| RN-03 | Cada livro tem um dono e uma única main. Criar livro e main compõe uma operação lógica. A representação de livro vazio depende de DEC-04. |
-| RN-04 | Nomes de branches são únicos dentro de um livro. A main não recebe escrita direta de escritores. |
-| RN-05 | Alterar uma branch não modifica outras branches. Apenas conteúdo confirmado por commit pode compor uma solicitação de integração. |
+| RN-03 | Cada livro tem um dono e uma única main. Criar livro e main compõe uma operação lógica. |
+| RN-04 | Nomes de branches são únicos dentro de um livro. |
+| RN-05 | Alterações feitas em uma branch não modificam outras branches nem a main. Um Pull Request só pode incluir alterações salvas em commits. Alterações ainda não commitadas ficam de fora. |
 | RN-06 | Commits preservam conteúdo histórico e autoria. Editar depois não reescreve uma versão registrada. A ancestralidade não pode conter ciclos. |
 | RN-07 | Origem, destino, capítulos e commits de uma operação pertencem ao mesmo livro. Origem e destino de merge são distintos. |
-| RN-08 | Somente o gestor decide integração à main. A aplicação revalida origem e destino antes de aplicar a decisão; mudanças posteriores à análise exigem nova verificação. |
-| RN-09 | Merge sem conflito incorpora conteúdo aprovado e registra sua relação com o histórico. Conflito preserva a main e exige ajuste. Algoritmo e granularidade: DEC-04 e DEC-05. |
-| RN-10 | Rejeitar proposta não altera a main nem apaga commits do escritor. Repetir decisão não pode gerar outro merge ou duplicar efeitos. |
-| RN-11 | Sugestões identificam capítulo, versão de origem, trecho original e texto proposto. Aprovação só substitui o trecho se ele e seu contexto continuarem válidos; caso contrário, exige reavaliação. |
-| RN-12 | Somente o gestor aceita ou rejeita sugestões. Aceitação registra nova versão oficial com autoria da operação e referência ao revisor; rejeição conserva o texto. |
-| RN-13 | O responsável por uma entrega pertence ao livro. Escritores só alteram o andamento das próprias entregas; quem administra prazos depende de DEC-07. |
+| RN-08 | O gestor e o revisor podem aceitar ou rejeitar um Pull Request. Antes de aceitar, o sistema verifica se as alterações podem entrar na versão atual da main |
+| RN-09 | Um Pull Request só pode ser aceito se suas alterações entrarem na main sem conflito. Se houver conflito, a main não é alterada. |
+| RN-10 | Rejeitar um Pull Request não altera a main nem apaga os commits do escritor. Enviar um novo Pull Request não rejeita automaticamente o anterior. A mesma decisão não pode ser aplicada duas vezes. |
+| RN-11 | Uma sugestão pertence a um Pull Request e indica um trecho que o revisor quer discutir. A sugestão não altera o conteúdo automaticamente e pode ser retirada. |
+| RN-12 | Um Pull Request com sugestões ativas não pode ser aceito. As sugestões podem ser debatidas fora do Gitbook e retiradas. Se não forem retiradas, o escritor pode corrigir o código e enviar outro Pull Request. |
+| RN-13 | O responsável por uma entrega pertence ao livro. Escritores só alteram o andamento das próprias entregas. |
 | RN-14 | Remover colaborador revoga seu acesso futuro sem apagar autoria, commits ou decisões anteriores. Remoção do dono e transferência de propriedade não integram o fluxo inicial. |
 
 ## 6. Requisitos funcionais e rastreabilidade
@@ -89,10 +87,10 @@ Critérios verificáveis estão nas [user stories](user-stories.md). Os IDs rela
 | RF-04 | Organizar capítulos e escrever em uma branch | US-07 | RN-05, RN-07 | Editor |
 | RF-05 | Criar e consultar branches | US-08 | RN-03 a RN-05 | Hub e editor |
 | RF-06 | Registrar alterações em commits | US-09 | RN-05 a RN-07 | Editor |
-| RF-07 | Solicitar e consultar integração à main | US-10, US-11 | RN-07, RN-08 | Editor e merges |
-| RF-08 | Aprovar ou rejeitar integração preservando histórico | US-12 | RN-08 a RN-10 | Detalhe do merge |
+| RF-07 | Criar e consultar Pull Requests de branches autorizadas | US-10, US-11 | RN-07, RN-08 | Editor e merges |
+| RF-08 | Aceitar ou rejeitar Pull Requests preservando o histórico | US-12 | RN-08 a RN-10 | Detalhe do merge |
 | RF-09 | Consultar histórico e conteúdo de versões anteriores | US-13 | RN-01, RN-06 | Histórico |
-| RF-10 | Propor e avaliar sugestões editoriais | US-14, US-15 | RN-11, RN-12 | Sugestões |
+| RF-10 | Criar e retirar sugestões feitas em Pull Requests | US-14, US-15 | RN-11, RN-12 | Sugestões |
 | RF-11 | Gerenciar prazos e acompanhar entregas | US-16, US-17 | RN-13 | Prazos |
 
 ## 7. Permissões propostas por livro
@@ -118,13 +116,13 @@ Metas propostas, ainda sem evidência de cumprimento. Desempenho e capacidade se
 | --- | --- | --- |
 | RNF-01 | Autorização no backend em todas as operações protegidas | Tentar ler e escrever sem vínculo e com papel insuficiente; nenhuma tentativa pode revelar conteúdo ou persistir alteração |
 | RNF-02 | Senhas com hash próprio para senhas, nunca em texto puro; credenciais ausentes de respostas e logs | Inspecionar persistência, configuração, respostas e logs de autenticação |
-| RNF-03 | Operações compostas preservam integridade: obra/main e integração/conteúdo/histórico não ficam parcialmente gravados | Provocar falha e verificar rollback; testar unicidade e vínculos entre livros no PostgreSQL |
+| RNF-03 | Operações compostas preservam a integridade: criação de livro e main, decisões sobre Pull Requests e alterações de status não deixam dados parcialmente gravados. | Provocar falha e verificar rollback; testar unicidade e vínculos entre livros no PostgreSQL |
 | RNF-04 | Dados confirmados sobrevivem ao reinício | Registrar versão, reiniciar aplicação e recuperar mesmo conteúdo e histórico |
-| RNF-05 | Interface distingue carregamento, vazio, validação e falha; erro não aparece como sucesso | Verificar esses estados em catálogo, gravação e avaliação |
+| RNF-05 | A interface distingue carregamento, vazio, validação e falha em livros, commits, Pull Requests e sugestões. Erros não podem aparecer como sucesso. | Verificar esses estados em catálogo, gravação e avaliação |
 | RNF-06 | Fluxos principais operáveis por teclado, com rótulos, foco visível e mensagens independentes de cor | Percorrer cadastro, criação de livro, commit e avaliação por teclado; conferir foco e mensagens |
 | RNF-07 | Interface utilizável em larguras de 360 px e 1280 px, com rolagem controlada em comparações extensas | Conferir formulários, navegação, editor e diff sem perda de ações |
 | RNF-08 | Ambiente local reproduzível com configuração de exemplo, migrações e passos documentados | Executar fluxo principal em banco vazio seguindo documentação de execução a atualizar |
-| RNF-09 | Acesso, isolamento de branches, imutabilidade e decisões concorrentes possuem verificações automatizadas relevantes | Relacionar cenários aos IDs RN/US e registrar comandos e resultados reais |
+| RNF-09 | Acesso, isolamento de branches, imutabilidade de commits, sugestões e decisões sobre Pull Requests possuem verificações automatizadas relevantes. | Relacionar cenários aos IDs RN/US e registrar comandos e resultados reais |
 
 JWT, Spring Security, PostgreSQL e Flyway são meios técnicos previstos ou presentes nas dependências; não substituem os comportamentos acima. Política de sessão e stack do frontend continuam pendentes.
 
