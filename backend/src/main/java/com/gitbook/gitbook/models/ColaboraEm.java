@@ -1,6 +1,6 @@
 package com.gitbook.gitbook.models;
 
-import com.gitbook.gitbook.entity.enums.CargoColab;
+import com.gitbook.gitbook.models.enums.CargoColab;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
