@@ -540,6 +540,8 @@ spring:
 
 # ☕ Executando o Backend
 
+No IntelliJ IDEA, importe `backend/pom.xml` como projeto Maven. As classes Java da API devem ficar em `backend/src/main/java/`; uma pasta `src/` na raiz não faz parte desse módulo e não recebe suas dependências.
+
 Entre no diretório do backend:
 
 ```bash

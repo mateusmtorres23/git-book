@@ -19,6 +19,7 @@ CREATE TABLE livro (
     id_livro     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     id_dono      UUID NOT NULL,
     versao       VARCHAR(20) NOT NULL,
+    nome_livro    VARCHAR(150) NOT NULL,
     data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     descricao    TEXT,
 
