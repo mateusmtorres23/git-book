@@ -1,4 +1,4 @@
 package com.gitbook.gitbook.entity;
 
-public class ColaborarEm {
+public class Usuario {
 }
