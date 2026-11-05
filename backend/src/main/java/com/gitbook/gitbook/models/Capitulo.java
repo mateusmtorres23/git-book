@@ -1,6 +1,7 @@
 package com.gitbook.gitbook.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class Capitulo {
     @JoinColumn(name = "id_livro", nullable = false)
     private Livro livro;
 
+    @NotBlank
     @Column(name = "titulo", nullable = false, length = 150)
     private String titulo;
 

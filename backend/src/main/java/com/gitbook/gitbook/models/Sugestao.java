@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Setter
@@ -16,14 +18,43 @@ import java.util.UUID;
 public class Sugestao {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_sugestao;
+    @Column(name = "id_sugestao")
+    private UUID idSugestao;
 
-    @ManyToMany
-    @JoinColumn(name = "capitulo", nullable = false)
-    Capitulo capitulo;
+    @ManyToOne
+    @JoinColumn(name = "id_capitulo", nullable = false)
+    private Capitulo capitulo;
+
+    @ManyToOne
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private Usuario usuario;
 
     @Column(name = "categoria", length = 50, nullable = false)
     private String categoria;
 
     @Column(name = "trecho_original", nullable = false, columnDefinition = "TEXT")
+    private String trechoOriginal;
+
+    @Column(name = "trecho_sugerido", nullable = false, columnDefinition = "TEXT")
+    private String trechoSugerido;
+
+    @Column(name = "justificativa", nullable = false, columnDefinition = "TEXT")
+    private String justificativa;
+
+    @Column(name = "posicao_inicial", nullable = false)
+    private Integer posicaoInicial;
+
+    @Column(name = "posicao_fim", nullable = false)
+    private Integer posicaoFim;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20, nullable = false)
+    private StatusSugestao status = StatusSugestao.PENDENTE;
+
+    @CreationTimestamp
+    @Column(name = "data_sugestao", nullable = false, updatable = false)
+    private LocalDateTime dataSugestao;
+
+    @Column(name = "data_avaliacao")
+    private LocalDateTime dataAvaliacao;
 }

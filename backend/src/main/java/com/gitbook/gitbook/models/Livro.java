@@ -2,6 +2,7 @@ package com.gitbook.gitbook.models;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,6 +33,7 @@ public class Livro {
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
 
+    @NotBlank
     @Column(name = "nome_livro", length = 150, nullable = false)
     private String nomeLivro;
 
