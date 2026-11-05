@@ -40,4 +40,10 @@ public class ColaboraEm {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "cargo", nullable = false, columnDefinition = "cargo_colab")
     private CargoColab cargo;
+
+    public ColaboraEm(Usuario usuario, Livro livro, CargoColab cargo) {
+        this.usuario = usuario;
+        this.livro = livro;
+        this.cargo = cargo;
+    }
 }
