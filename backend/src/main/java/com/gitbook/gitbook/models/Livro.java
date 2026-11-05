@@ -2,6 +2,7 @@ package com.gitbook.gitbook.models;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,8 @@ import java.util.UUID;
 public class Livro {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_livro;
+    @Column(name = "id_livro")
+    private UUID idLivro;
 
     @ManyToOne
     @JoinColumn(name = "id_dono", nullable = false)
@@ -31,10 +33,11 @@ public class Livro {
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
 
+    @NotBlank
     @Column(name = "nome_livro", length = 150, nullable = false)
-    private String nome_livro;
+    private String nomeLivro;
 
     @CreationTimestamp
     @Column(name = "data_criacao", nullable = false,updatable = false)
-    private LocalDateTime data_criacao;
+    private LocalDateTime dataCriacao;
 }
