@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.service;
+package com.gitbook.gitbook.service.implementations;
 
-public class ColaboraEmService {
+public interface ColaboraEmService {
 }
