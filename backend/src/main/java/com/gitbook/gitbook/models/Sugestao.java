@@ -1,5 +1,6 @@
 package com.gitbook.gitbook.models;
 
+import com.gitbook.gitbook.models.enums.StatusSugestao;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
