@@ -1,6 +1,7 @@
 package com.gitbook.gitbook.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,14 +22,19 @@ public class Sugestao {
     @Column(name = "id_sugestao")
     private UUID idSugestao;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_capitulo", nullable = false)
     private Capitulo capitulo;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_pull_request", nullable = false)
+    private PullRequest pullRequest;
+
+    @Size(max = 50)
     @Column(name = "categoria", length = 50, nullable = false)
     private String categoria;
 
