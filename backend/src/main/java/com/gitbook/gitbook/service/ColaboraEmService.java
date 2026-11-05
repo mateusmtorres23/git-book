@@ -1,4 +1,9 @@
 package com.gitbook.gitbook.service;
 
-public class ColaboraEmService {
+import com.gitbook.gitbook.models.ColaboraEm;
+
+import java.util.UUID;
+
+public interface ColaboraEmService {
+    public ColaboraEm buscarPorId(UUID idColaboracao);
 }
