@@ -1,8 +1,10 @@
 # 📚 Gitbook
 
+📋 **Documentação detalhada:** [requisitos](docs/requirements.md), [user stories](docs/user-stories.md) e [decisões de codificação](docs/decisions.md).
+
 > **Plataforma colaborativa para escrita, versionamento e gerenciamento de livros baseada nos conceitos do Git.**
 
-[![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot) [![Spring Security](https://img.shields.io/badge/Spring%20Security-JWT-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)](https://spring.io/projects/spring-security) [![Maven](https://img.shields.io/badge/Maven-Build-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/) [![React](https://img.shields.io/badge/React-18%2B-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)  
+[![Java](https://img.shields.io/badge/Java-17+-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot) [![Spring Security](https://img.shields.io/badge/Spring%20Security-JWT-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)](https://spring.io/projects/spring-security) [![Maven](https://img.shields.io/badge/Maven-Build-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/) [![React](https://img.shields.io/badge/React-19%2B-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 ---
@@ -14,17 +16,17 @@ O **Gitbook** é uma plataforma de escrita colaborativa desenvolvida para facili
 Em processos tradicionais de escrita colaborativa, diferentes autores podem acabar trabalhando sobre a mesma versão de um documento, gerando problemas como:
 
 - Conflitos entre alterações;
-    
+
 - Perda de versões anteriores;
-    
+
 - Dificuldade para identificar quem realizou determinada alteração;
-    
+
 - Falta de rastreabilidade;
-    
+
 - Processo manual de revisão e aprovação;
-    
+
 - Dificuldade para experimentar diferentes caminhos para a obra.
-    
+
 
 O Gitbook propõe uma abordagem diferente.
 
@@ -47,15 +49,15 @@ Cada escritor possui uma branch própria para desenvolver sua versão da obra.
 Isso permite:
 
 - Trabalho paralelo;
-    
+
 - Isolamento das alterações;
-    
+
 - Experimentação de diferentes versões;
-    
+
 - Preservação da versão principal;
-    
+
 - Redução de conflitos durante a escrita.
-    
+
 
 ### 📝 Commits
 
@@ -64,13 +66,13 @@ Cada alteração relevante pode ser registrada como um commit.
 Um commit permite identificar:
 
 - Quem realizou a alteração;
-    
+
 - Quando a alteração foi realizada;
-    
+
 - Qual conteúdo foi modificado;
-    
+
 - Qual branch recebeu a alteração.
-    
+
 
 Exemplo conceitual:
 
@@ -95,11 +97,11 @@ Após finalizar seu trabalho, o escritor pode solicitar a integração de sua br
 O **Gestor** analisa a proposta e pode:
 
 - Aprovar o merge;
-    
+
 - Rejeitar o merge;
-    
+
 - Solicitar alterações antes da integração.
-    
+
 
 ### 👀 Revisões e Sugestões
 
@@ -120,13 +122,13 @@ O histórico de commits permite acompanhar a evolução da obra ao longo do temp
 Isso proporciona maior:
 
 - Rastreabilidade;
-    
+
 - Transparência;
-    
+
 - Segurança;
-    
+
 - Organização.
-    
+
 
 ### 📚 Gerenciamento de Livros
 
@@ -149,19 +151,19 @@ O Gestor possui a maior autoridade sobre o processo editorial.
 Suas principais responsabilidades são:
 
 - Definir a versão oficial da obra;
-    
+
 - Gerenciar o processo de integração;
-    
+
 - Aprovar merges;
-    
+
 - Rejeitar merges;
-    
+
 - Avaliar sugestões dos revisores;
-    
+
 - Aceitar ou rejeitar alterações propostas;
-    
+
 - Acompanhar o histórico do livro.
-    
+
 
 ### ✍️ Escritor
 
@@ -170,15 +172,15 @@ O Escritor trabalha de forma independente em uma branch.
 Seu fluxo normalmente consiste em:
 
 1. Acessar o livro;
-    
+
 2. Criar ou utilizar sua branch;
-    
+
 3. Desenvolver alterações;
-    
+
 4. Criar commits;
-    
+
 5. Solicitar integração da branch.
-    
+
 
 ### 🔎 Revisor
 
@@ -187,15 +189,15 @@ O Revisor atua na análise editorial.
 Pode:
 
 - Consultar a produção;
-    
+
 - Identificar problemas;
-    
+
 - Sugerir correções;
-    
+
 - Propor melhorias;
-    
+
 - Acompanhar o resultado das alterações.
-    
+
 
 ---
 
@@ -369,7 +371,7 @@ O projeto utiliza uma arquitetura separando responsabilidades entre frontend, ba
 │                  CLIENTE                 │
 │                                          │
 │        React + TypeScript + Vite         │
-│              / Next.js                   │
+│                                          │
 └────────────────────┬─────────────────────┘
                      │
                      │ HTTP / REST
@@ -404,7 +406,7 @@ O projeto utiliza uma arquitetura separando responsabilidades entre frontend, ba
 |Tecnologia|Finalidade|
 |---|---|
 |![Java](https://img.shields.io/badge/Java-17+-ED8B00?logo=openjdk&logoColor=white)|Linguagem principal|
-|![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot&logoColor=white)|Framework backend|
+|![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=springboot&logoColor=white)|Framework backend|
 |![Spring Security](https://img.shields.io/badge/Spring%20Security-JWT-6DB33F?logo=springsecurity&logoColor=white)|Autenticação e autorização|
 |![Maven](https://img.shields.io/badge/Maven-C71A36?logo=apachemaven&logoColor=white)|Gerenciamento de dependências e build|
 
@@ -415,9 +417,8 @@ O projeto utiliza uma arquitetura separando responsabilidades entre frontend, ba
 |![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)|Tipagem e desenvolvimento|
 |![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)|Interface da aplicação|
 |![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)|Build e desenvolvimento|
-|![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)|Framework React, quando utilizado|
 
-> **Nota:** Vite e Next.js representam alternativas para a camada frontend. A implementação definitiva deve utilizar uma delas como padrão do projeto.
+> A SPA utiliza React, TypeScript e Vite. O protótipo estático permanece em `docs/prototype/`.
 
 ### Banco de Dados
 
@@ -430,71 +431,53 @@ O projeto utiliza uma arquitetura separando responsabilidades entre frontend, ba
 
 ## 📁 Estrutura do Projeto
 
-Uma possível organização do projeto é:
+O projeto está organizado em:
 
 ```text
 gitbook/
-│
-├── backend/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/gitbook/
-│   │   │   │       ├── controller/
-│   │   │   │       ├── service/
-│   │   │   │       ├── repository/
-│   │   │   │       ├── model/
-│   │   │   │       ├── dto/
-│   │   │   │       ├── security/
-│   │   │   │       └── config/
-│   │   │   │
-│   │   │   └── resources/
-│   │   │       └── application.yml
-│   │   │
-│   │   └── test/
-│   │
-│   └── pom.xml
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── hooks/
-│   │   ├── types/
-│   │   └── utils/
-│   │
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.ts
-│
-├── docker-compose.yml
+├── backend/             # Spring Boot, Maven, configurações e Dockerfile
+├── frontend/            # SPA React + TypeScript, Nginx e Dockerfile
+├── docs/                # Requisitos, decisões, SQL de referência e protótipo
+├── docker-compose.yml   # API, SPA e PostgreSQL
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-# 🚀 Como Executar o Projeto
+## 🚀 Como Executar o Projeto
+
+### Executar os serviços
+
+Na raiz, execute `docker compose up --build`.
+
+- SPA: http://localhost:3000
+- API: http://localhost:8080 (rotas protegidas pelo Spring Security)
+- PostgreSQL: localhost:5432, banco `gitbook`
+
+O ambiente local usa usuário e senha `gitbook`; é possível sobrescrevê-los com `POSTGRES_USER` e `POSTGRES_PASSWORD` em `.env`. O volume `postgres_data` preserva os dados. A SPA encaminha `/api/` para o backend pelo Nginx.
+
+O Flyway executará as migrations em `backend/src/main/resources/db/migration/` quando forem criadas. O SQL em `docs/db/` continua como referência e não é executado automaticamente.
+
 
 ## 📋 Pré-requisitos
 
 Antes de iniciar, certifique-se de possuir as seguintes ferramentas instaladas:
 
 - **Java 17 ou superior**
-    
+
 - **Maven 3.8+**
-    
+
 - **Node.js 18+**
-    
+
 - **npm ou Yarn**
-    
+
 - **Docker e Docker Compose**
-    
+
 - **PostgreSQL**, caso não seja utilizado via Docker
-    
+
 - **Git**
-    
+
 
 Verifique as versões:
 
@@ -760,23 +743,23 @@ Uma possível relação entre as principais entidades é:
 Entidades que podem compor o domínio:
 
 - `User`
-    
+
 - `Role`
-    
+
 - `Book`
-    
+
 - `Branch`
-    
+
 - `Commit`
-    
+
 - `MergeRequest`
-    
+
 - `Review`
-    
+
 - `Suggestion`
-    
+
 - `BookVersion`
-    
+
 
 ---
 
@@ -822,23 +805,23 @@ mvn test
 Recomenda-se cobrir:
 
 - Autenticação;
-    
+
 - Autorização;
-    
+
 - Criação de livros;
-    
+
 - Criação de branches;
-    
+
 - Commits;
-    
+
 - Solicitações de merge;
-    
+
 - Aprovação/rejeição;
-    
+
 - Sugestões dos revisores;
-    
+
 - Regras de permissão.
-    
+
 
 ### Frontend
 
@@ -879,21 +862,21 @@ docker compose up -d --build
 Algumas boas práticas recomendadas:
 
 - Utilizar JWT com tempo de expiração adequado;
-    
+
 - Armazenar secrets em variáveis de ambiente;
-    
+
 - Nunca versionar senhas;
-    
+
 - Aplicar autorização no backend;
-    
+
 - Validar todas as entradas recebidas pela API;
-    
+
 - Utilizar HTTPS em ambientes de produção;
-    
+
 - Aplicar princípio do menor privilégio;
-    
+
 - Manter dependências atualizadas.
-    
+
 
 ---
 
@@ -960,13 +943,13 @@ git push origin feature/minha-feature
 Descreva:
 
 - O que foi alterado;
-    
+
 - Qual problema foi resolvido;
-    
+
 - Como testar;
-    
+
 - Possíveis impactos ou observações.
-    
+
 
 ---
 
@@ -1006,29 +989,29 @@ git commit -m "docs: atualiza documentação da API"
 Possíveis evoluções futuras:
 
 -  Sistema completo de comentários;
-    
+
 -  Comparação visual entre versões;
-    
+
 -  Detecção automática de conflitos;
-    
+
 -  Histórico visual de alterações;
-    
+
 -  Notificações;
-    
+
 -  Sistema de permissões mais granular;
-    
+
 -  Busca dentro dos livros;
-    
+
 -  Exportação para PDF/ePub;
-    
+
 -  Dashboard de gerenciamento;
-    
+
 -  Colaboração em tempo real;
-    
+
 -  Auditoria completa de alterações;
-    
+
 -  Integração com serviços externos de armazenamento.
-    
+
 
 ---
 
