@@ -1,9 +1,6 @@
 package com.gitbook.gitbook.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,8 +16,16 @@ public class Capitulo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id_capitulo;
-    private UUID id_livro;
+    @Column(name = "id_capitulo")
+    private UUID idCapitulo;
+
+    @ManyToOne
+    @JoinColumn(name = "id_livro", nullable = false)
+    private Livro livro;
+
+    @Column(name = "titulo", nullable = false, length = 150)
     private String titulo;
+
+    @Column(name = "ordem", nullable = false)
     private Integer ordem;
 }
