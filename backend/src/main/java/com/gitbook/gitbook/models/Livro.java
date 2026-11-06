@@ -3,6 +3,7 @@ package com.gitbook.gitbook.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,10 +24,11 @@ public class Livro {
     @Column(name = "id_livro")
     private UUID idLivro;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_dono", nullable = false)
     private Usuario dono;
 
+    @Size(max = 20)
     @Column(name = "versao", length = 20,nullable = false)
     private String versao;
 
@@ -34,6 +36,7 @@ public class Livro {
     private String descricao;
 
     @NotBlank
+    @Size(max = 150)
     @Column(name = "nome_livro", length = 150, nullable = false)
     private String nomeLivro;
 

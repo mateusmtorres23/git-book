@@ -89,14 +89,14 @@ Como escritor, quero confirmar alterações com uma mensagem para registrar a ev
 
 ## Épico 4 - Integração e rastreabilidade
 
-### US-10 - Solicitar integração à main · P1 · RF-07
+### US-10 - Enviar um Pull Request · P1 · RF-07
 
-Como escritor, quero submeter alterações confirmadas da minha branch para que o gestor avalie sua incorporação à obra oficial.
+Como escritor, quero enviar alterações confirmadas da minha branch em um Pull Request para que o gestor ou o revisor possa analisá-las.
 
-- **CA-01:** Posso informar título e descrição para propor alterações de branch sob minha responsabilidade à main do mesmo livro.
-- **CA-02:** A proposta registra solicitante, data, origem, destino e versão de origem submetida. Edições sem commit não são incluídas.
+- **CA-01:** Posso informar título e descrição para propor alterações da branch sob minha responsabilidade à main do mesmo livro.
+- **CA-02:** O Pull Request registra solicitante, data, origem, destino e os commits existentes no momento do envio. Edições sem commit não são incluídas.
 - **CA-03:** Origem igual ao destino, branches de livros diferentes ou ausência de diferenças elegíveis impedem abertura.
-- **CA-04:** A proposta aparece aberta para acompanhamento. Escopo por capítulo ou conjunto, duplicidade de solicitações e atualização após novos commits: DEC-05.
+- **CA-04:** O Pull Request aparece aberto para acompanhamento. Novos commits na branch não entram automaticamente nele; o escritor pode enviar outro Pull Request com essas alterações.
 
 ### US-11 - Analisar uma proposta · P1 · RF-07
 
@@ -104,18 +104,18 @@ Como participante da obra, quero consultar propostas e diferenças para compreen
 
 - **CA-01:** A listagem distingue solicitações abertas e encerradas por decisão e permite abrir seu detalhe.
 - **CA-02:** O detalhe apresenta solicitante, título, descrição, branches, versões comparadas e alterações, identificando adições e remoções.
-- **CA-03:** O conteúdo mostrado corresponde às versões identificadas na análise; mudanças posteriores são sinalizadas antes da decisão.
-- **CA-04:** Somente o gestor recebe ações de decisão habilitadas; acesso direto à operação continua sujeito à autorização no servidor.
+- **CA-03:** O conteúdo mostrado corresponde aos commits registrados no Pull Request. Commits posteriores não alteram o Pull Request existente.
+- **CA-04:** Gestor e revisor podem receber ações de decisão conforme suas permissões; o acesso direto à operação continua sujeito à autorização no servidor.
 
-### US-12 - Aprovar ou rejeitar integração · P1 · RF-08
+### US-12 - Aceitar ou rejeitar um Pull Request · P1 · RF-08
 
-Como gestor, quero decidir uma proposta para controlar o conteúdo que passa a compor a versão oficial.
+Como gestor ou revisor, quero aceitar ou rejeitar um Pull Request para controlar o conteúdo que passa a compor a versão oficial.
 
-- **CA-01:** Aprovar proposta aberta e sem conflito incorpora alterações avaliadas à main, registra integração no histórico e encerra solicitação como mergeada na mesma operação lógica.
-- **CA-02:** Rejeitar com justificativa encerra solicitação como rejeitada, preservando main e commits do escritor.
-- **CA-03:** Se origem ou destino mudarem desde a análise, o sistema revalida comparação e exige nova avaliação quando necessário, sem aplicar mudanças silenciosas.
-- **CA-04:** Conflito impede integração, mantém main intacta e informa alterações que precisam de ajuste. Resolução manual ocorre na branch de trabalho, conforme estratégia a definir.
-- **CA-05:** Decisões repetidas ou concorrentes sobre a mesma solicitação produzem no máximo uma integração; quem não é gestor não consegue decidir.
+- **CA-01:** Aceitar um Pull Request aberto, sem conflito e sem sugestões ativas incorpora suas alterações à main, registra a integração no histórico e encerra o Pull Request como mergeado na mesma operação lógica.
+- **CA-02:** Rejeitar um Pull Request com justificativa encerra a solicitação como rejeitada, preservando a main e os commits do escritor.
+- **CA-03:** Antes de aceitar, o sistema compara o Pull Request com a versão atual da main. Commits posteriores na branch de origem não entram automaticamente na decisão.
+- **CA-04:** Conflito impede a aceitação e mantém a main intacta. O escritor pode corrigir o código e enviar outro Pull Request.
+- **CA-05:** Decisões repetidas ou concorrentes sobre o mesmo Pull Request produzem no máximo uma integração. Enviar outro Pull Request não altera automaticamente o status do anterior.
 
 ### US-13 - Consultar histórico e versões · P1 · RF-09
 
@@ -130,20 +130,20 @@ Como participante da obra, quero consultar commits e versões anteriores para co
 
 ### US-14 - Propor uma sugestão · P2 · RF-10
 
-Como revisor, quero sugerir substituição de um trecho para melhorar o texto sem alterá-lo diretamente.
+Como revisor, quero sugerir uma alteração em um trecho de um Pull Request sem modificar o conteúdo diretamente.
 
-- **CA-01:** Na leitura da main, posso selecionar trecho e informar texto sugerido, categoria e justificativa, preservando capítulo, posição e versão de origem.
-- **CA-02:** A sugestão nasce pendente e identifica seu autor; conteúdo oficial permanece inalterado.
-- **CA-03:** Trecho sem correspondência na versão informada ou dados obrigatórios ausentes impedem registro. Categorias e limites precisam ser definidos antes de implementar.
+- **CA-01:** Na leitura do Pull Request, posso selecionar um trecho e sugerir uma melhoria, preservando o Pull Request, capítulo, posição e versão analisada.
+- **CA-02:** A sugestão nasce pendente, identifica seu autor e fica vinculada ao Pull Request; o conteúdo da branch e da main permanece inalterado.
+- **CA-03:** Trecho sem correspondência na versão informada ou dados obrigatórios ausentes impedem registro.
 
-### US-15 - Avaliar uma sugestão · P2 · RF-10
+### US-15 - Retirar uma sugestão · P2 · RF-10
 
-Como gestor, quero comparar e decidir sugestões para incorporar melhorias com rastreabilidade.
+Como revisor, quero retirar uma sugestão para permitir que o Pull Request continue sendo analisado.
 
-- **CA-01:** Posso consultar trecho original, proposta, justificativa, revisor e versão analisada, distinguindo sugestões pendentes, aceitas e rejeitadas.
-- **CA-02:** Aceitar sugestão ainda válida substitui trecho correto na main, registra nova versão e decisão, preservando referência à revisão original.
-- **CA-03:** Se o texto mudou e a correspondência não pode ser confirmada, a aplicação impede substituição e pede reavaliação; nunca substitui outra ocorrência apenas por ter o mesmo texto.
-- **CA-04:** Rejeitar mantém conteúdo oficial. Repetir decisão não aplica novamente substituição nem cria commits duplicados.
+- **CA-01:** Posso consultar o trecho original, a proposta, a justificativa, o revisor e o Pull Request ao qual a sugestão pertence.
+- **CA-02:** Retirar uma sugestão deixa de bloquear a aceitação do Pull Request, mas mantém seu registro no histórico.
+- **CA-03:** Retirar uma sugestão não altera o conteúdo do Pull Request, da branch ou da main.
+- **CA-04:** Criar um novo Pull Request não altera as sugestões do Pull Request anterior.
 
 ## Épico 6 - Prazos e entregas
 

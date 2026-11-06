@@ -1,33 +1,32 @@
 package com.gitbook.gitbook.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.hibernate.annotations.Immutable;
+
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
+@Immutable
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Capitulo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id_capitulo")
+    @Column(name = "id_capitulo", nullable = false, updatable = false)
     private UUID idCapitulo;
 
-    @ManyToOne
-    @JoinColumn(name = "id_livro", nullable = false)
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_livro", nullable = false, updatable = false)
     private Livro livro;
 
-    @NotBlank
-    @Column(name = "titulo", nullable = false, length = 150)
-    private String titulo;
-
-    @Column(name = "ordem", nullable = false)
-    private Integer ordem;
+    public Capitulo(Livro livro) {
+        this.livro = Objects.requireNonNull(livro, "O livro do capítulo é obrigatório.");
+    }
 }

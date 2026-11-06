@@ -48,21 +48,3 @@ CREATE TABLE conteudo_capitulo (
     CONSTRAINT fk_conteudo_capitulo
         FOREIGN KEY (id_capitulo) REFERENCES capitulo (id_capitulo)
 );
-
-CREATE TABLE versao_atual (
-    id_versao_atual UUID PRIMARY KEY,
-    id_capitulo UUID NOT NULL,
-    id_conteudo UUID NOT NULL,
-
-    CONSTRAINT uq_versao_atual_capitulo
-        UNIQUE (id_capitulo),
-
-    CONSTRAINT uq_versao_atual_conteudo
-        UNIQUE (id_conteudo),
-
-    CONSTRAINT fk_versao_atual_capitulo
-        FOREIGN KEY (id_capitulo) REFERENCES capitulo (id_capitulo),
-
-    CONSTRAINT fk_versao_atual_conteudo
-        FOREIGN KEY (id_conteudo) REFERENCES conteudo_capitulo (id_versao)
-);
