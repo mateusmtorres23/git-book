@@ -4,8 +4,12 @@ import com.gitbook.gitbook.dtos.ColaboraEmRequestDTO;
 import com.gitbook.gitbook.dtos.ColaboraEmResponseDTO;
 import com.gitbook.gitbook.dtos.ColaboraEmUpdateRequestDTO;
 import com.gitbook.gitbook.models.ColaboraEm;
+import com.gitbook.gitbook.models.Livro;
+import com.gitbook.gitbook.models.Usuario;
 import com.gitbook.gitbook.models.enums.CargoColab;
 import com.gitbook.gitbook.repository.ColaboraEmRepository;
+import com.gitbook.gitbook.repository.LivroRepository;
+import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.ColaboraEmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,8 @@ import java.util.UUID;
 public class ColaboraEmServiceImpl implements ColaboraEmService {
 
     private final ColaboraEmRepository colaboraEmRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final LivroRepository livroRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -47,8 +53,21 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
     @Override
     @Transactional
-    public ColaboraEm cadastrar(ColaboraEmRequestDTO dto) {
-        return null;
+    public ColaboraEmResponseDTO cadastrar(ColaboraEmRequestDTO dto) {
+        boolean jaColabora = colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(dto.idUsuario(), dto.idLivro());
+
+        if (jaColabora) {
+            return null;
+        }
+
+        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).get();
+        Livro livro = livroRepository.findById(dto.idLivro()).get();
+
+        ColaboraEm colaboracao = new ColaboraEm(usuario, livro, dto.cargo());
+
+        ColaboraEm salva = colaboraEmRepository.save(colaboracao);
+
+        return ColaboraEmResponseDTO.fromEntity(salva);
     }
 
     @Transactional

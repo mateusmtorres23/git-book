@@ -12,6 +12,6 @@ public interface ColaboraEmService {
     public ColaboraEmResponseDTO buscarPorId(UUID idColaboracao);
     public List<ColaboraEmResponseDTO> listarPorLivro(UUID idLivro);
     public List<ColaboraEmResponseDTO> listarPorUsuario(UUID idUsuario);
-    public ColaboraEm cadastrar(ColaboraEmRequestDTO dto);
+    public ColaboraEmResponseDTO cadastrar(ColaboraEmRequestDTO dto);
     public ColaboraEmResponseDTO atualizarCargo(UUID idColaboracao, ColaboraEmUpdateRequestDTO dto);
 }
