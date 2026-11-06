@@ -1,5 +1,7 @@
 package com.gitbook.gitbook.service.implementations;
 
+import com.gitbook.gitbook.dtos.ColaboraEmRequestDTO;
+import com.gitbook.gitbook.dtos.ColaboraEmResponseDTO;
 import com.gitbook.gitbook.models.ColaboraEm;
 import com.gitbook.gitbook.repository.ColaboraEmRepository;
 import com.gitbook.gitbook.service.ColaboraEmService;
@@ -18,17 +20,32 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
     @Override
     @Transactional(readOnly = true)
-    public ColaboraEm buscarPorId(UUID idColaboracao) {
-        return colaboraEmRepository.findById(idColaboracao).get();
+    public ColaboraEmResponseDTO buscarPorId(UUID idColaboracao) {
+        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).get();
+        return ColaboraEmResponseDTO.fromEntity(colaboracao);
     }
 
     @Override
-    public List<ColaboraEm> listarPorLivro(UUID idLivro) {
-        return colaboraEmRepository.findByLivro_IdLivro(idLivro);
+    @Transactional(readOnly = true)
+    public List<ColaboraEmResponseDTO> listarPorLivro(UUID idLivro) {
+        return colaboraEmRepository.findByLivro_IdLivro(idLivro)
+                .stream()
+                .map(ColaboraEmResponseDTO::fromEntity)
+                .toList();
     }
 
     @Override
-    public List<ColaboraEm> listarPorUsuario(UUID idUsuario) {
-        return colaboraEmRepository.findByUsuario_IdUsuario(idUsuario);
+    @Transactional(readOnly = true)
+    public List<ColaboraEmResponseDTO> listarPorUsuario(UUID idUsuario) {
+        return colaboraEmRepository.findByUsuario_IdUsuario(idUsuario)
+                .stream()
+                .map(ColaboraEmResponseDTO::fromEntity)
+                .toList();
     }
+
+    @Override
+    public ColaboraEm cadastrar(ColaboraEmRequestDTO dto) {
+        return null;
+    }
+
 }
