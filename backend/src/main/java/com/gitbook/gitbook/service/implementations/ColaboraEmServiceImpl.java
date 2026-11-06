@@ -60,8 +60,22 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
             return null;
         }
 
+        if (dto.cargo() == null) {
+            return null;
+        }
+
         Usuario usuario = usuarioRepository.findById(dto.idUsuario()).get();
         Livro livro = livroRepository.findById(dto.idLivro()).get();
+
+        boolean ehDono = usuario.getIdUsuario().equals(livro.getDono().getIdUsuario());
+
+        if (ehDono && dto.cargo() != CargoColab.GESTOR) {
+            return null;
+        }
+
+        if (!ehDono && dto.cargo() == CargoColab.GESTOR) {
+            return null;
+        }
 
         ColaboraEm colaboracao = new ColaboraEm(usuario, livro, dto.cargo());
 
@@ -79,7 +93,9 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
         ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).get();
 
-        if (colaboracao.getCargo() == CargoColab.GESTOR) {
+        boolean ehDono = colaboracao.getUsuario().getIdUsuario().equals(colaboracao.getLivro().getDono().getIdUsuario());
+
+        if (ehDono) {
             return null;
         }
 
