@@ -13,6 +13,12 @@ public record PullRequestResponseDTO(
         String titulo,
         String descricao,
         StatusPullRequest status,
-        LocalDateTime dataAbertura
+        LocalDateTime dataAbertura,
+        UUID idCommitOrigem,
+        UUID idCommitDestinoNaAbertura,
+        UUID idCommitMerge,
+        UUID idAutorDecisao,
+        String justificativaRejeicao,
+        LocalDateTime dataFechamento
 ) {
 }
