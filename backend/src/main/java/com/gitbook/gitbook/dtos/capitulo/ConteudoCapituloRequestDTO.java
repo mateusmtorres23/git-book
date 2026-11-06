@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.capitulo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;

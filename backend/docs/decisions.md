@@ -57,3 +57,13 @@ Na estratégia da decisão 3, a leitura herda o estado do pai 1 e aplica as alte
 O service deverá criar os vínculos na mesma transação do commit, garantir a quantidade e os papéis dos pais, exigir o pai 1 quando houver pai 2, impedir ciclos e verificar o avanço concorrente da branch. A ordem será definida pelo backend a partir da operação, não recebida como escolha livre do usuário. Esta etapa implementa o contrato no model e no repository; os services e as migrations permanecem pendentes.
 
 **Assinatura:** Mateus
+
+### 6. Organizar DTOs por recurso
+
+Os DTOs ficam em subpacotes de `com.gitbook.gitbook.dtos`: `branch`, `commit`, `capitulo`, `livro`, `pullrequest`, `sugestao` e `usuario`. Requests e responses permanecem juntos no recurso correspondente. `CommitPaiResponseDTO` fica em `commit`; os DTOs de conteúdo ficam em `capitulo`; `VersaoLivroResponseDTO` fica em `livro`.
+
+A reorganização altera somente caminhos, packages e imports, preservando nomes, campos e validações dos DTOs.
+
+**Validação (06/11/2026):** `mvn -o clean compile` concluiu com `BUILD SUCCESS`. A comparação dos 20 DTOs com a revisão anterior confirmou que somente packages, imports e caminhos foram alterados; `git diff --check` não apontou problemas. Nenhum teste foi criado ou recuperado nesta etapa.
+
+**Assinatura:** Mateus

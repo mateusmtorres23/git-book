@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.capitulo;
 
 import java.util.UUID;
 

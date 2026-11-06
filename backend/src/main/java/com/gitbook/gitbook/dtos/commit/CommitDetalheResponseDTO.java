@@ -1,4 +1,6 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.commit;
+
+import com.gitbook.gitbook.dtos.capitulo.ConteudoCapituloResponseDTO;
 
 import java.util.List;
 

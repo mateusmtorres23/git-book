@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.livro;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

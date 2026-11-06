@@ -1,6 +1,7 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.commit;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.gitbook.gitbook.dtos.capitulo.ConteudoCapituloRequestDTO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;

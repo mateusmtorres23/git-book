@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.livro;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

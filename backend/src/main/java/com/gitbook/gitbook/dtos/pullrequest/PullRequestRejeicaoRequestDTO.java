@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.pullrequest;
 
 import jakarta.validation.constraints.NotBlank;
 

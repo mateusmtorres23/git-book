@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.pullrequest;
 
 import com.gitbook.gitbook.models.enums.StatusPullRequest;
 

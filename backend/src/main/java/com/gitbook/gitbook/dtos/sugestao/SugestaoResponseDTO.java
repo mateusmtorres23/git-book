@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.sugestao;
 
 import com.gitbook.gitbook.models.enums.StatusSugestao;
 
