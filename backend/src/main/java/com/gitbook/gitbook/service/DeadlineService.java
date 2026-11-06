@@ -1,5 +1,6 @@
 package com.gitbook.gitbook.service;
 
+import com.gitbook.gitbook.dtos.deadline.DeadlineRequestDTO;
 import com.gitbook.gitbook.dtos.deadline.DeadlineResponseDTO;
 
 import java.util.List;
@@ -11,4 +12,6 @@ public interface DeadlineService {
     List<DeadlineResponseDTO> listarPorLivro(UUID idLivro);
 
     List<DeadlineResponseDTO> listarPorUsuario(UUID idUsuario);
+
+    DeadlineResponseDTO cadastrar(DeadlineRequestDTO dto);
 }

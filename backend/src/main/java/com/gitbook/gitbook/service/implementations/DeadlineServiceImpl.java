@@ -1,8 +1,14 @@
 package com.gitbook.gitbook.service.implementations;
 
+import com.gitbook.gitbook.dtos.deadline.DeadlineRequestDTO;
 import com.gitbook.gitbook.dtos.deadline.DeadlineResponseDTO;
 import com.gitbook.gitbook.models.Deadline;
+import com.gitbook.gitbook.models.Livro;
+import com.gitbook.gitbook.models.Usuario;
+import com.gitbook.gitbook.repository.ColaboraEmRepository;
 import com.gitbook.gitbook.repository.DeadlineRepository;
+import com.gitbook.gitbook.repository.LivroRepository;
+import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.DeadlineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +22,9 @@ import java.util.UUID;
 public class DeadlineServiceImpl implements DeadlineService {
 
     private final DeadlineRepository deadlineRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final LivroRepository livroRepository;
+    private final ColaboraEmRepository colaboraEmRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,5 +49,37 @@ public class DeadlineServiceImpl implements DeadlineService {
                 .stream()
                 .map(DeadlineResponseDTO::fromEntity)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public DeadlineResponseDTO cadastrar(DeadlineRequestDTO dto) {
+        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).get();
+        Livro livro = livroRepository.findById(dto.idLivro()).get();
+
+        boolean ehDono = usuario.getIdUsuario()
+                .equals(livro.getDono().getIdUsuario());
+
+        boolean ehColaborador =
+                colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(
+                        dto.idUsuario(),
+                        dto.idLivro()
+                );
+
+        if (!ehDono && !ehColaborador) {
+            return null;
+        }
+
+        Deadline deadline = new Deadline(
+                usuario,
+                livro,
+                dto.titulo(),
+                dto.descricao(),
+                dto.dataLimite()
+        );
+
+        Deadline salva = deadlineRepository.save(deadline);
+
+        return DeadlineResponseDTO.fromEntity(salva);
     }
 }
