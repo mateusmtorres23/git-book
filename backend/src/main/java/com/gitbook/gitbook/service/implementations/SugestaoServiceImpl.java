@@ -48,6 +48,7 @@ SugestaoServiceImpl implements SugestaoService {
             return null;
         }
         Livro livro = bloquearLivroDoPullRequest(idPullRequest);
+
         if (livro == null || !usuarioRepository.existsById(idUsuario)) {
             return null;
         }

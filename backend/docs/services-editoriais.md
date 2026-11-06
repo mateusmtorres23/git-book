@@ -40,10 +40,37 @@ Falhas de infraestrutura continuam sendo tratadas pelo Spring e pelo banco. Não
 - Dono e colaboradores podem consultar sugestões, inclusive de Pull Requests encerrados.
 - Criação e retirada usam o mesmo lock do livro usado pelo merge, para serializar alterações de sugestões e decisões do Pull Request.
 
+## Controllers e rotas
+
+Os controllers usam `@Valid` para validar os DTOs recebidos e `ResponseEntity` para retornar status HTTP com verificações por `if`, sem lançar exceções manualmente. Os mecanismos de validação e segurança do Spring continuam ativos.
+
+| Método | Rota | Operação |
+| --- | --- | --- |
+| POST | `/api/users` | Cadastrar conta |
+| GET | `/api/users/{idUsuario}` | Consultar a própria conta |
+| PUT | `/api/users/{idUsuario}` | Atualizar a própria conta, incluindo senha |
+| POST | `/api/books` | Criar livro com main |
+| GET | `/api/books` | Listar livros próprios e compartilhados |
+| GET | `/api/books/{idLivro}` | Consultar livro autorizado |
+| PUT | `/api/books/{idLivro}` | Atualizar título e descrição como dono |
+| GET | `/api/branches/{idBranch}/chapters` | Listar capítulos da branch |
+| GET | `/api/branches/{idBranch}/chapters/{idCapitulo}` | Consultar capítulo na branch |
+| POST | `/api/pull-requests/{idPullRequest}/suggestions` | Criar sugestão |
+| GET | `/api/pull-requests/{idPullRequest}/suggestions` | Listar sugestões |
+| GET | `/api/suggestions/{idSugestao}` | Consultar sugestão |
+| PATCH | `/api/suggestions/{idSugestao}/withdraw` | Retirar sugestão sem apagá-la |
+
+Criações retornam `201` com cabeçalho `Location`. Consultas e alterações concluídas retornam `200`; listagens autorizadas sem resultados retornam `200` com `[]`.
+
+Nos endpoints protegidos, cada controller obtém o usuário pelo e-mail em `Authentication.getName()`. Autenticação ausente, anônima ou sem conta correspondente retorna `401`, caso a requisição chegue ao controller. Consultar ou atualizar a conta de outra pessoa retorna `403`.
+
+Cadastro e atualização de conta recusados pelo service retornam `409`. Criação de livro ou sugestão recusada retorna `400`. As demais operações retornam `404` quando o service devolve `null`, pois esse retorno não distingue recurso inexistente, falta de permissão ou estado incompatível. Os controllers não tentam deduzir a causa nem expõem a existência de recursos sem acesso.
+
 ## Estado de validação e pendências
 
 - Verificação estática dos contratos e compilação Maven. Não foram criados nem executados testes nesta revisão.
 - Persistência, rollback e concorrência no PostgreSQL ainda precisam de verificação no ambiente integrado.
 - A migration `V1__migration_gitbook.sql` referencia tabelas que ainda não cria e não contém todos os campos atuais de conteúdo de capítulo. A inicialização de um banco vazio depende de completar as migrations.
-- Ainda faltam controllers de usuário, livro, capítulo e sugestão. Eles deverão validar os DTOs e transformar retornos `null` em respostas HTTP apropriadas.
-- Os IDs usados para verificar permissões devem vir da autenticação no servidor. As assinaturas dos services, por si só, não autenticam o usuário. A identificação e autorização da própria conta na consulta/atualização de usuário também precisam ser ligadas a esse fluxo.
+- Os controllers de usuário, livro, capítulo e sugestão estão implementados e a compilação passou. As rotas ainda não foram verificadas com a aplicação e o banco em execução.
+- Falta configurar o fluxo de autenticação e segurança para fornecer o e-mail da conta em `Authentication.getName()`, liberar o cadastro público e definir o tratamento de CSRF conforme o mecanismo de autenticação escolhido. Os controllers não substituem essa configuração; a segurança padrão do Spring pode bloquear a requisição antes de ela chegar ao método.
+- Os IDs usados para verificar permissões vêm da autenticação no servidor. As assinaturas dos services, por si só, não autenticam o usuário; chamadas internas ao service de usuário precisam preservar a autorização aplicada no controller.
