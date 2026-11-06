@@ -2,6 +2,7 @@ package com.gitbook.gitbook.service.implementations;
 
 import com.gitbook.gitbook.dtos.deadline.DeadlineRequestDTO;
 import com.gitbook.gitbook.dtos.deadline.DeadlineResponseDTO;
+import com.gitbook.gitbook.dtos.deadline.DeadlineUpdateRequestDTO;
 import com.gitbook.gitbook.models.Deadline;
 import com.gitbook.gitbook.models.Livro;
 import com.gitbook.gitbook.models.Usuario;
@@ -81,5 +82,37 @@ public class DeadlineServiceImpl implements DeadlineService {
         Deadline salva = deadlineRepository.save(deadline);
 
         return DeadlineResponseDTO.fromEntity(salva);
+    }
+
+    @Override
+    @Transactional
+    public DeadlineResponseDTO atualizar(UUID idDeadline, DeadlineUpdateRequestDTO dto) {
+        Deadline deadline = deadlineRepository.findById(idDeadline).get();
+        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).get();
+        Livro livro = deadline.getLivro();
+
+        boolean ehDono = usuario.getIdUsuario()
+                .equals(livro.getDono().getIdUsuario());
+
+        boolean ehColaborador =
+                colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(
+                        dto.idUsuario(),
+                        livro.getIdLivro()
+                );
+
+        if (!ehDono && !ehColaborador) {
+            return null;
+        }
+
+        deadline.atualizarDados(
+                usuario,
+                dto.titulo(),
+                dto.descricao(),
+                dto.dataLimite()
+        );
+
+        Deadline atualizada = deadlineRepository.save(deadline);
+
+        return DeadlineResponseDTO.fromEntity(atualizada);
     }
 }
