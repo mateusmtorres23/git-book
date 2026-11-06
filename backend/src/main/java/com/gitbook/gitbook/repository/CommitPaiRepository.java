@@ -2,6 +2,7 @@ package com.gitbook.gitbook.repository;
 
 import com.gitbook.gitbook.models.CommitPai;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface CommitPaiRepository extends JpaRepository<CommitPai, UUID> {
+    @EntityGraph(attributePaths = "commitPai")
     List<CommitPai> findByCommitFilho_IdCommitOrderByOrdemPaiAsc(UUID idCommitFilho);
 
     Optional<CommitPai> findByCommitFilho_IdCommitAndOrdemPai(UUID idCommitFilho, Integer ordemPai);
