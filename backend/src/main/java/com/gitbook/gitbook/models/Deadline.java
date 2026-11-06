@@ -52,4 +52,16 @@ public class Deadline {
         this.status = StatusTask.PENDENTE;
         this.dataLimite = dataLimite;
     }
+
+    public void atualizarDados(
+            Usuario usuario,
+            String titulo,
+            String descricao,
+            LocalDateTime dataLimite
+    ) {
+        this.usuario = usuario;
+        this.titulo = titulo;
+        this.descricao = descricao;
+        this.dataLimite = dataLimite;
+    }
 }
