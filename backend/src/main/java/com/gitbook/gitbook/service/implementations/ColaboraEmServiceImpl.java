@@ -12,6 +12,8 @@ import com.gitbook.gitbook.repository.LivroRepository;
 import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.ColaboraEmService;
 import lombok.RequiredArgsConstructor;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
+import com.gitbook.gitbook.service.exceptions.ConflitoNegocioException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +31,7 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
     @Override
     @Transactional(readOnly = true)
     public ColaboraEmResponseDTO buscarPorId(UUID idColaboracao) {
-        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).get();
+        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idColaboracao));
         return ColaboraEmResponseDTO.fromEntity(colaboracao);
     }
 
@@ -57,24 +59,24 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
         boolean jaColabora = colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(dto.idUsuario(), dto.idLivro());
 
         if (jaColabora) {
-            return null;
+            throw new ConflitoNegocioException("O usuário já colabora neste livro.");
         }
 
         if (dto.cargo() == null) {
-            return null;
+            throw new IllegalArgumentException("O cargo é obrigatório.");
         }
 
-        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).get();
-        Livro livro = livroRepository.findById(dto.idLivro()).get();
+        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + dto.idUsuario()));
+        Livro livro = livroRepository.findById(dto.idLivro()).orElseThrow(() -> new RecursoNaoEncontradoException("Livro não encontrado: " + dto.idLivro()));
 
         boolean ehDono = usuario.getIdUsuario().equals(livro.getDono().getIdUsuario());
 
         if (ehDono && dto.cargo() != CargoColab.GESTOR) {
-            return null;
+            throw new IllegalArgumentException("O dono do livro deve possuir cargo GESTOR.");
         }
 
         if (!ehDono && dto.cargo() == CargoColab.GESTOR) {
-            return null;
+            throw new IllegalArgumentException("Somente o dono do livro pode possuir cargo GESTOR.");
         }
 
         ColaboraEm colaboracao = new ColaboraEm(usuario, livro, dto.cargo());
@@ -87,16 +89,16 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
     @Transactional
     @Override
     public ColaboraEmResponseDTO atualizarCargo(UUID idColaboracao, ColaboraEmUpdateRequestDTO dto) {
-        if (dto.cargo() == null || dto.cargo() == CargoColab.GESTOR) {
-            return null;
-        }
-
-        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).get();
+        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idColaboracao));
 
         boolean ehDono = colaboracao.getUsuario().getIdUsuario().equals(colaboracao.getLivro().getDono().getIdUsuario());
 
         if (ehDono) {
-            return null;
+            throw new ConflitoNegocioException("A colaboração do dono não pode ser alterada.");
+        }
+
+        if (dto.cargo() == null || dto.cargo() == CargoColab.GESTOR) {
+            throw new IllegalArgumentException("Informe um cargo válido diferente de GESTOR.");
         }
 
         colaboracao.setCargo(dto.cargo());
@@ -109,12 +111,12 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
     @Override
     @Transactional
     public boolean remover(UUID idColaboracao) {
-        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).get();
+        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idColaboracao));
 
         boolean ehDono = colaboracao.getUsuario().getIdUsuario().equals(colaboracao.getLivro().getDono().getIdUsuario());
 
         if (ehDono) {
-            return false;
+            throw new ConflitoNegocioException("A colaboração do dono não pode ser excluída.");
         }
 
         colaboraEmRepository.delete(colaboracao);

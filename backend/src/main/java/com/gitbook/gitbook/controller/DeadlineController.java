@@ -6,6 +6,7 @@ import com.gitbook.gitbook.dtos.deadline.DeadlineStatusRequestDTO;
 import com.gitbook.gitbook.dtos.deadline.DeadlineUpdateRequestDTO;
 import com.gitbook.gitbook.service.DeadlineService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,55 +22,46 @@ public class DeadlineController {
     private final DeadlineService deadlineService;
 
     @PostMapping
-    public ResponseEntity<DeadlineResponseDTO> cadastrar(@RequestBody DeadlineRequestDTO dto) {
+    public ResponseEntity<DeadlineResponseDTO> cadastrar(@Valid @RequestBody DeadlineRequestDTO dto) {
         DeadlineResponseDTO resposta = deadlineService.cadastrar(dto);
-        if (resposta == null) {
-            return ResponseEntity.badRequest().build();
-        }
         return ResponseEntity.created(URI.create("/api/deadlines/" + resposta.idDeadline()))
                 .body(resposta);
     }
 
     @GetMapping("/{idDeadline}")
-    public ResponseEntity<DeadlineResponseDTO> buscarPorId(@PathVariable UUID idDeadline) {
+    public ResponseEntity<DeadlineResponseDTO> buscarPorId(@PathVariable("idDeadline") UUID idDeadline) {
         return ResponseEntity.ok(deadlineService.buscarPorId(idDeadline));
     }
 
-    @GetMapping(params = "idLivro")
-    public ResponseEntity<List<DeadlineResponseDTO>> listarPorLivro(@RequestParam UUID idLivro) {
-        return ResponseEntity.ok(deadlineService.listarPorLivro(idLivro));
-    }
-
-    @GetMapping(params = {"idUsuario", "!idLivro"})
-    public ResponseEntity<List<DeadlineResponseDTO>> listarPorUsuario(@RequestParam UUID idUsuario) {
-        return ResponseEntity.ok(deadlineService.listarPorUsuario(idUsuario));
-    }
-
-    @PatchMapping("/{idDeadline}")
-    public ResponseEntity<DeadlineResponseDTO> atualizar(
-            @PathVariable UUID idDeadline, @RequestBody DeadlineUpdateRequestDTO dto) {
-        DeadlineResponseDTO resposta = deadlineService.atualizar(idDeadline, dto);
-        if (resposta == null) {
-            return ResponseEntity.badRequest().build();
+    @GetMapping
+    public ResponseEntity<List<DeadlineResponseDTO>> listar(
+            @RequestParam(name = "idLivro", required = false) UUID idLivro,
+            @RequestParam(name = "idUsuario", required = false) UUID idUsuario) {
+        if ((idLivro == null) == (idUsuario == null)) {
+            throw new IllegalArgumentException("Informe exatamente um dos filtros: idLivro ou idUsuario.");
         }
+        return ResponseEntity.ok(idLivro != null
+                ? deadlineService.listarPorLivro(idLivro)
+                : deadlineService.listarPorUsuario(idUsuario));
+    }
+
+    @PutMapping("/{idDeadline}")
+    public ResponseEntity<DeadlineResponseDTO> atualizar(
+            @PathVariable("idDeadline") UUID idDeadline, @Valid @RequestBody DeadlineUpdateRequestDTO dto) {
+        DeadlineResponseDTO resposta = deadlineService.atualizar(idDeadline, dto);
         return ResponseEntity.ok(resposta);
     }
 
     @PatchMapping("/{idDeadline}/status")
     public ResponseEntity<DeadlineResponseDTO> atualizarStatus(
-            @PathVariable UUID idDeadline, @RequestBody DeadlineStatusRequestDTO dto) {
+            @PathVariable("idDeadline") UUID idDeadline, @Valid @RequestBody DeadlineStatusRequestDTO dto) {
         DeadlineResponseDTO resposta = deadlineService.atualizarStatus(idDeadline, dto);
-        if (resposta == null) {
-            return ResponseEntity.badRequest().build();
-        }
         return ResponseEntity.ok(resposta);
     }
 
     @DeleteMapping("/{idDeadline}")
-    public ResponseEntity<Void> remover(@PathVariable UUID idDeadline) {
-        if (!deadlineService.remover(idDeadline)) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Void> remover(@PathVariable("idDeadline") UUID idDeadline) {
+        deadlineService.remover(idDeadline);
         return ResponseEntity.noContent().build();
     }
 }

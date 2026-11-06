@@ -6,6 +6,7 @@ import com.gitbook.gitbook.repository.ConteudoCapituloRepository;
 import com.gitbook.gitbook.service.ConteudoCapituloService;
 import com.gitbook.gitbook.service.support.VersionamentoMapper;
 import lombok.RequiredArgsConstructor;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +23,7 @@ public class ConteudoCapituloServiceImpl implements ConteudoCapituloService {
     @Transactional(readOnly = true)
     public ConteudoCapituloResponseDTO buscarPorId(UUID idVersao) {
         ConteudoCapitulo conteudo =
-                conteudoCapituloRepository.findById(idVersao).get();
+                conteudoCapituloRepository.findById(idVersao).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idVersao));
 
         return VersionamentoMapper.conteudo(conteudo);
     }

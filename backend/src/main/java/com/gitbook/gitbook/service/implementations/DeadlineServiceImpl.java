@@ -13,6 +13,7 @@ import com.gitbook.gitbook.repository.LivroRepository;
 import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.DeadlineService;
 import lombok.RequiredArgsConstructor;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +32,7 @@ public class DeadlineServiceImpl implements DeadlineService {
     @Override
     @Transactional(readOnly = true)
     public DeadlineResponseDTO buscarPorId(UUID idDeadline) {
-        Deadline deadline = deadlineRepository.findById(idDeadline).get();
+        Deadline deadline = deadlineRepository.findById(idDeadline).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idDeadline));
         return DeadlineResponseDTO.fromEntity(deadline);
     }
 
@@ -56,8 +57,8 @@ public class DeadlineServiceImpl implements DeadlineService {
     @Override
     @Transactional
     public DeadlineResponseDTO cadastrar(DeadlineRequestDTO dto) {
-        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).get();
-        Livro livro = livroRepository.findById(dto.idLivro()).get();
+        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + dto.idUsuario()));
+        Livro livro = livroRepository.findById(dto.idLivro()).orElseThrow(() -> new RecursoNaoEncontradoException("Livro não encontrado: " + dto.idLivro()));
 
         boolean ehDono = usuario.getIdUsuario()
                 .equals(livro.getDono().getIdUsuario());
@@ -69,7 +70,7 @@ public class DeadlineServiceImpl implements DeadlineService {
                 );
 
         if (!ehDono && !ehColaborador) {
-            return null;
+            throw new IllegalArgumentException("O usuário deve ser dono ou colaborador do livro.");
         }
 
         Deadline deadline = new Deadline(
@@ -88,8 +89,8 @@ public class DeadlineServiceImpl implements DeadlineService {
     @Override
     @Transactional
     public DeadlineResponseDTO atualizar(UUID idDeadline, DeadlineUpdateRequestDTO dto) {
-        Deadline deadline = deadlineRepository.findById(idDeadline).get();
-        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).get();
+        Deadline deadline = deadlineRepository.findById(idDeadline).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idDeadline));
+        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + dto.idUsuario()));
         Livro livro = deadline.getLivro();
 
         boolean ehDono = usuario.getIdUsuario()
@@ -102,7 +103,7 @@ public class DeadlineServiceImpl implements DeadlineService {
                 );
 
         if (!ehDono && !ehColaborador) {
-            return null;
+            throw new IllegalArgumentException("O usuário deve ser dono ou colaborador do livro.");
         }
 
         deadline.atualizarDados(
@@ -121,10 +122,10 @@ public class DeadlineServiceImpl implements DeadlineService {
     @Transactional
     public DeadlineResponseDTO atualizarStatus(UUID idDeadline, DeadlineStatusRequestDTO dto) {
         if (dto.status() == null) {
-            return null;
+            throw new IllegalArgumentException("Dados incompatíveis com as regras da operação.");
         }
 
-        Deadline deadline = deadlineRepository.findById(idDeadline).get();
+        Deadline deadline = deadlineRepository.findById(idDeadline).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idDeadline));
         deadline.atualizarStatus(dto.status());
 
         Deadline atualizada = deadlineRepository.save(deadline);
@@ -135,7 +136,7 @@ public class DeadlineServiceImpl implements DeadlineService {
     @Override
     @Transactional
     public boolean remover(UUID idDeadline) {
-        Deadline deadline = deadlineRepository.findById(idDeadline).get();
+        Deadline deadline = deadlineRepository.findById(idDeadline).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idDeadline));
 
         deadlineRepository.delete(deadline);
 

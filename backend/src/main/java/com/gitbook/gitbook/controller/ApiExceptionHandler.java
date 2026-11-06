@@ -1,6 +1,7 @@
 package com.gitbook.gitbook.controller;
 
 import com.gitbook.gitbook.service.exceptions.ConflitoVersionamentoException;
+import com.gitbook.gitbook.service.exceptions.ConflitoNegocioException;
 import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.ConcurrencyFailureException;
@@ -35,8 +36,8 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return problema(HttpStatus.NOT_FOUND, erro.getMessage());
     }
 
-    @ExceptionHandler(ConflitoVersionamentoException.class)
-    public ProblemDetail conflito(ConflitoVersionamentoException erro) {
+    @ExceptionHandler({ConflitoVersionamentoException.class, ConflitoNegocioException.class})
+    public ProblemDetail conflito(RuntimeException erro) {
         return problema(HttpStatus.CONFLICT, erro.getMessage());
     }
 

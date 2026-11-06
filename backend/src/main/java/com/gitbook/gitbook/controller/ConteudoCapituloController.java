@@ -17,17 +17,20 @@ public class ConteudoCapituloController {
     private final ConteudoCapituloService conteudoCapituloService;
 
     @GetMapping("/{idVersao}")
-    public ResponseEntity<ConteudoCapituloResponseDTO> buscarPorId(@PathVariable UUID idVersao) {
+    public ResponseEntity<ConteudoCapituloResponseDTO> buscarPorId(@PathVariable("idVersao") UUID idVersao) {
         return ResponseEntity.ok(conteudoCapituloService.buscarPorId(idVersao));
     }
 
-    @GetMapping(params = "idCapitulo")
-    public ResponseEntity<List<ConteudoCapituloResponseDTO>> listarPorCapitulo(@RequestParam UUID idCapitulo) {
-        return ResponseEntity.ok(conteudoCapituloService.listarPorCapitulo(idCapitulo));
+    @GetMapping
+    public ResponseEntity<List<ConteudoCapituloResponseDTO>> listar(
+            @RequestParam(name = "idCapitulo", required = false) UUID idCapitulo,
+            @RequestParam(name = "idCommit", required = false) UUID idCommit) {
+        if ((idCapitulo == null) == (idCommit == null)) {
+            throw new IllegalArgumentException("Informe exatamente um dos filtros: idCapitulo ou idCommit.");
+        }
+        return ResponseEntity.ok(idCapitulo != null
+                ? conteudoCapituloService.listarPorCapitulo(idCapitulo)
+                : conteudoCapituloService.listarPorCommit(idCommit));
     }
 
-    @GetMapping(params = {"idCommit", "!idCapitulo"})
-    public ResponseEntity<List<ConteudoCapituloResponseDTO>> listarPorCommit(@RequestParam UUID idCommit) {
-        return ResponseEntity.ok(conteudoCapituloService.listarPorCommit(idCommit));
-    }
 }
