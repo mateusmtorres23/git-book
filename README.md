@@ -782,13 +782,15 @@ Exemplo conceitual:
 |`POST`|`/api/books/{id}/branches`|Cria branch|
 |`GET`|`/api/branches/{id}/commits`|Lista commits|
 |`POST`|`/api/branches/{id}/commits`|Cria commit|
-|`POST`|`/api/branches/{id}/merge`|Solicita merge|
-|`PATCH`|`/api/merges/{id}/approve`|Aprova merge|
-|`PATCH`|`/api/merges/{id}/reject`|Rejeita merge|
+|`POST`|`/api/pull-requests`|Abre Pull Request|
+|`PATCH`|`/api/pull-requests/{id}/approve`|Aprova Pull Request|
+|`PATCH`|`/api/pull-requests/{id}/reject`|Rejeita Pull Request|
 |`POST`|`/api/books/{id}/suggestions`|Cria sugestão|
 |`PATCH`|`/api/suggestions/{id}`|Avalia sugestão|
 
 > Os endpoints apresentados são uma referência arquitetural e devem ser ajustados de acordo com a implementação real da API.
+
+As rotas implementadas de Branch, Commit, CommitPai e PullRequest, seus códigos HTTP e o contrato de autenticação estão em [API de versionamento](backend/docs/api-versionamento.md).
 
 ---
 

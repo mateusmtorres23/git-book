@@ -90,4 +90,3 @@ Os testes de integração exigem Docker em execução. A partir de `backend/`:
 ```
 
 O CI deve executar a suíte completa com banco descartável. Falhas de Docker, migration ou schema devem quebrar o build e não ser ignoradas.
-
