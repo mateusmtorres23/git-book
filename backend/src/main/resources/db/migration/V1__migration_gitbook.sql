@@ -40,7 +40,35 @@ CREATE TABLE conteudo_capitulo (
     id_versao UUID PRIMARY KEY,
     id_commit UUID NOT NULL,
     id_capitulo UUID NOT NULL,
-    conteudo TEXT NOT NULL,
+    titulo VARCHAR(150),
+    ordem INTEGER,
+    conteudo TEXT,
+    excluido BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT uq_conteudo_commit_capitulo
+        UNIQUE (id_commit, id_capitulo),
+
+    CONSTRAINT uq_conteudo_commit_ordem
+        UNIQUE (id_commit, ordem),
+
+    CONSTRAINT ck_conteudo_estado
+        CHECK (
+            (
+                excluido = TRUE
+                AND titulo IS NULL
+                AND ordem IS NULL
+                AND conteudo IS NULL
+            )
+            OR
+            (
+                excluido = FALSE
+                AND titulo IS NOT NULL
+                AND titulo ~ '[^[:space:]]'
+                AND ordem IS NOT NULL
+                AND ordem > 0
+                AND conteudo IS NOT NULL
+            )
+        ),
 
     CONSTRAINT fk_conteudo_commit
         FOREIGN KEY (id_commit) REFERENCES commit (id_commit),
