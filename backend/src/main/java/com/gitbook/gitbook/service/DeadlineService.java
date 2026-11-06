@@ -2,6 +2,7 @@ package com.gitbook.gitbook.service;
 
 import com.gitbook.gitbook.dtos.deadline.DeadlineRequestDTO;
 import com.gitbook.gitbook.dtos.deadline.DeadlineResponseDTO;
+import com.gitbook.gitbook.dtos.deadline.DeadlineStatusRequestDTO;
 import com.gitbook.gitbook.dtos.deadline.DeadlineUpdateRequestDTO;
 
 import java.util.List;
@@ -17,4 +18,8 @@ public interface DeadlineService {
     DeadlineResponseDTO cadastrar(DeadlineRequestDTO dto);
 
     DeadlineResponseDTO atualizar(UUID idDeadline, DeadlineUpdateRequestDTO dto);
+
+    DeadlineResponseDTO atualizarStatus(UUID idDeadline, DeadlineStatusRequestDTO dto);
+
+    boolean remover(UUID idDeadline);
 }
