@@ -53,6 +53,10 @@ public class Deadline {
         this.dataLimite = dataLimite;
     }
 
+    public void atualizarStatus(StatusTask status) {
+        this.status = status;
+    }
+
     public void atualizarDados(
             Usuario usuario,
             String titulo,
