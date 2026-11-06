@@ -2,7 +2,7 @@ package com.gitbook.gitbook.repository;
 
 import com.gitbook.gitbook.models.Capitulo;
 import com.gitbook.gitbook.models.PullRequest;
-import com.gitbook.gitbook.models.StatusSugestao;
+import com.gitbook.gitbook.models.enums.StatusSugestao;
 import com.gitbook.gitbook.models.Sugestao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
