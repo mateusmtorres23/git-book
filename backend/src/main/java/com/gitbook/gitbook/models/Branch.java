@@ -46,6 +46,10 @@ public class Branch {
     @JoinColumn(name = "id_autor", nullable = false)
     private Usuario autor;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_commit_atual")
+    private Commit commitAtual;
+
     @Column(name = "nome", nullable = false, length = 100)
     private String nome;
 
