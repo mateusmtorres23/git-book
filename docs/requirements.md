@@ -103,7 +103,7 @@ Matriz de produto, sujeita a DEC-01, DEC-02 e DEC-07; não é reprodução integ
 | Atualizar metadados e colaboradores | Sim | Não | Não |
 | Criar branch e registrar conteúdo | Sim, em branch de trabalho | Sim, na própria branch | Não |
 | Solicitar merge | Sim | Sim, da própria branch | Não |
-| Decidir merge e sugestão na main | Sim | Não | Não |
+| Aceitar ou rejeitar Pull Requests | Sim | Não | Sim |
 | Criar sugestão editorial | Não previsto inicialmente | Não previsto inicialmente | Sim |
 | Criar, editar e excluir prazos | Sim | Não | A confirmar |
 | Atualizar andamento de entrega | Sim | Somente própria | Somente própria; gestão a confirmar |
