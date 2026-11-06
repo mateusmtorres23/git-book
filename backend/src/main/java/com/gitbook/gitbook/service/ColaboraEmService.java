@@ -14,4 +14,5 @@ public interface ColaboraEmService {
     public List<ColaboraEmResponseDTO> listarPorUsuario(UUID idUsuario);
     public ColaboraEmResponseDTO cadastrar(ColaboraEmRequestDTO dto);
     public ColaboraEmResponseDTO atualizarCargo(UUID idColaboracao, ColaboraEmUpdateRequestDTO dto);
+    public boolean remover(UUID idColaboracao);
 }

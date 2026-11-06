@@ -105,4 +105,19 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
         return ColaboraEmResponseDTO.fromEntity(atualizada);
     }
+
+    @Override
+    @Transactional
+    public boolean remover(UUID idColaboracao) {
+        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).get();
+
+        boolean ehDono = colaboracao.getUsuario().getIdUsuario().equals(colaboracao.getLivro().getDono().getIdUsuario());
+
+        if (ehDono) {
+            return false;
+        }
+
+        colaboraEmRepository.delete(colaboracao);
+        return true;
+    }
 }
