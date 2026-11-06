@@ -1,4 +1,4 @@
-package com.gitbook.gitbook.dtos;
+package com.gitbook.gitbook.dtos.colaboraEm;
 
 import com.gitbook.gitbook.models.ColaboraEm;
 import com.gitbook.gitbook.models.enums.CargoColab;

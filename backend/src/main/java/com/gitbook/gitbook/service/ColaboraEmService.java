@@ -1,8 +1,8 @@
 package com.gitbook.gitbook.service;
 
-import com.gitbook.gitbook.dtos.ColaboraEmRequestDTO;
-import com.gitbook.gitbook.dtos.ColaboraEmResponseDTO;
-import com.gitbook.gitbook.dtos.ColaboraEmUpdateRequestDTO;
+import com.gitbook.gitbook.dtos.colaboraEm.ColaboraEmRequestDTO;
+import com.gitbook.gitbook.dtos.colaboraEm.ColaboraEmResponseDTO;
+import com.gitbook.gitbook.dtos.colaboraEm.ColaboraEmUpdateRequestDTO;
 import com.gitbook.gitbook.models.ColaboraEm;
 
 import java.util.List;
