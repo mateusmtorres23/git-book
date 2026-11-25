@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
+import { useAuth } from '../features/auth/AuthProvider';
 import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
+import { HomePage } from '../pages/HomePage';
 
 const caminhoCadastro = '/cadastro';
 const caminhoLogin = '/login';
@@ -21,6 +23,10 @@ function lerNavegacao() {
 
 export function App() {
   const [{ caminho, cadastro }, definirNavegacao] = useState(lerNavegacao);
+  const { verificacao, recuperarSessao } = useAuth();
+  const rotaProtegida = caminho !== caminhoCadastro && caminho !== caminhoLogin;
+  const sessaoValida = verificacao.tipo === 'autenticado'
+    && Date.parse(verificacao.sessao.expiraEm) > Date.now();
 
   useEffect(() => {
     function atualizarCaminho() {
@@ -30,6 +36,17 @@ export function App() {
     window.addEventListener('popstate', atualizarCaminho);
     return () => window.removeEventListener('popstate', atualizarCaminho);
   }, []);
+
+  useEffect(() => {
+    if (!rotaProtegida || window.location.pathname !== caminho) return;
+
+    if (verificacao.tipo === 'semSessao') {
+      window.history.replaceState(null, '', caminhoLogin);
+      definirNavegacao(lerNavegacao());
+    } else if (verificacao.tipo === 'verificando' || (verificacao.tipo === 'autenticado' && !sessaoValida)) {
+      void recuperarSessao();
+    }
+  }, [caminho, rotaProtegida, verificacao.tipo, sessaoValida, recuperarSessao]);
 
   function seguirLink(evento: MouseEvent<HTMLAnchorElement>) {
     if (evento.button !== 0 || evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.altKey) {
@@ -49,6 +66,13 @@ export function App() {
     definirNavegacao(lerNavegacao());
   }
 
+  function abrirInicioAposLogin() {
+    if (window.location.pathname !== caminhoLogin) return;
+
+    window.history.replaceState(null, '', '/');
+    definirNavegacao(lerNavegacao());
+  }
+
   if (caminho === caminhoCadastro) {
     return <RegisterPage aoCadastrar={abrirLoginAposCadastro} />;
   }
@@ -60,18 +84,21 @@ export function App() {
         emailInicial={cadastro?.email}
         contaCriada={cadastro?.contaCriada}
         aoAbrirCadastro={seguirLink}
+        aoAutenticar={abrirInicioAposLogin}
       />
     );
   }
 
-  return (
-    <main>
-      <h1>Gitbook</h1>
-      <p>Plataforma de escrita colaborativa.</p>
-      <nav>
-        <a href={caminhoLogin} onClick={seguirLink}>Entrar</a>{' · '}
-        <a href={caminhoCadastro} onClick={seguirLink}>Criar conta</a>
-      </nav>
-    </main>
-  );
+  if (sessaoValida) return <HomePage />;
+
+  if (verificacao.tipo === 'erro') {
+    return (
+      <main>
+        <p role="alert">{verificacao.mensagem}</p>
+        <button type="button" onClick={() => void recuperarSessao()}>Tentar novamente</button>
+      </main>
+    );
+  }
+
+  return <main><p role="status">Verificando sessão…</p></main>;
 }

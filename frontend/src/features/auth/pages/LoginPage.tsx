@@ -36,14 +36,14 @@ type LoginPageProps = {
   emailInicial?: string;
   contaCriada?: boolean;
   aoAbrirCadastro: MouseEventHandler<HTMLAnchorElement>;
+  aoAutenticar: () => void;
 };
 
-export function LoginPage({ emailInicial, contaCriada, aoAbrirCadastro }: LoginPageProps) {
+export function LoginPage({ emailInicial, contaCriada, aoAbrirCadastro, aoAutenticar }: LoginPageProps) {
   const { iniciarSessao } = useAuth();
   const [erros, definirErros] = useState<ErrosLogin>({});
   const [mensagens, definirMensagens] = useState<string[]>([]);
   const [enviando, definirEnviando] = useState(false);
-  const [loginConfirmado, definirLoginConfirmado] = useState(false);
   const envioEmAndamento = useRef(false);
 
   async function enviarLogin(evento: FormEvent<HTMLFormElement>) {
@@ -71,7 +71,7 @@ export function LoginPage({ emailInicial, contaCriada, aoAbrirCadastro }: LoginP
         case 'autenticado':
           iniciarSessao(resultado.sessao);
           senha.value = '';
-          definirLoginConfirmado(true);
+          aoAutenticar();
           break;
         case 'dadosInvalidos':
           definirMensagens(resultado.mensagens);
@@ -89,39 +89,34 @@ export function LoginPage({ emailInicial, contaCriada, aoAbrirCadastro }: LoginP
 
   return (
     <AuthLayout titulo="Entrar">
-      <div role="status">
-        {loginConfirmado && <p className="auth-success">Login realizado com sucesso.</p>}
-        {!loginConfirmado && contaCriada && <p className="auth-success">Conta criada com sucesso.</p>}
-      </div>
-      {!loginConfirmado && (
-        <form className="auth-form" onSubmit={enviarLogin} noValidate>
-          {campos.map(({ nome, rotulo, tipo, autocomplete }) => (
-            <div className="auth-field" key={nome}>
-              <label htmlFor={`login-${nome}`}>{rotulo}</label>
-              <input
-                id={`login-${nome}`}
-                name={nome}
-                type={tipo}
-                autoComplete={autocomplete}
-                defaultValue={nome === 'email' ? emailInicial : undefined}
-                required
-                readOnly={enviando}
-                aria-invalid={Boolean(erros[nome])}
-                aria-describedby={erros[nome] ? `login-${nome}-erro` : undefined}
-                onChange={() => definirErros((atuais) => ({ ...atuais, [nome]: undefined }))}
-              />
-              {erros[nome] && <p className="auth-error" id={`login-${nome}-erro`} role="alert">{erros[nome]}</p>}
-            </div>
-          ))}
-          {mensagens.length > 0 && (
-            <ul className="auth-error" role="alert">
-              {mensagens.map((mensagem, indice) => <li key={indice}>{mensagem}</li>)}
-            </ul>
-          )}
-          <button type="submit" disabled={enviando}>{enviando ? 'Entrando…' : 'Entrar'}</button>
-          <a href="/cadastro" onClick={aoAbrirCadastro}>Criar conta</a>
-        </form>
-      )}
+      {contaCriada && <p className="auth-success" role="status">Conta criada com sucesso.</p>}
+      <form className="auth-form" onSubmit={enviarLogin} noValidate>
+        {campos.map(({ nome, rotulo, tipo, autocomplete }) => (
+          <div className="auth-field" key={nome}>
+            <label htmlFor={`login-${nome}`}>{rotulo}</label>
+            <input
+              id={`login-${nome}`}
+              name={nome}
+              type={tipo}
+              autoComplete={autocomplete}
+              defaultValue={nome === 'email' ? emailInicial : undefined}
+              required
+              readOnly={enviando}
+              aria-invalid={Boolean(erros[nome])}
+              aria-describedby={erros[nome] ? `login-${nome}-erro` : undefined}
+              onChange={() => definirErros((atuais) => ({ ...atuais, [nome]: undefined }))}
+            />
+            {erros[nome] && <p className="auth-error" id={`login-${nome}-erro`} role="alert">{erros[nome]}</p>}
+          </div>
+        ))}
+        {mensagens.length > 0 && (
+          <ul className="auth-error" role="alert">
+            {mensagens.map((mensagem, indice) => <li key={indice}>{mensagem}</li>)}
+          </ul>
+        )}
+        <button type="submit" disabled={enviando}>{enviando ? 'Entrando…' : 'Entrar'}</button>
+        <a href="/cadastro" onClick={aoAbrirCadastro}>Criar conta</a>
+      </form>
     </AuthLayout>
   );
 }
