@@ -24,7 +24,7 @@ public final class VersionamentoMapper {
     public static BranchResponseDTO branch(Branch branch) {
         return new BranchResponseDTO(branch.getIdBranch(), branch.getLivro().getIdLivro(),
                 branch.getAutor().getIdUsuario(), branch.getNome(), branch.isMain(), id(branch.getCommitAtual()),
-                branch.getDataCriacao());
+                id(branch.getCommitOrigem()), branch.getDataCriacao());
     }
 
     public static CommitResponseDTO commit(Commit commit) {

@@ -10,6 +10,7 @@ public record BranchResponseDTO(
         String nome,
         boolean main,
         UUID idCommitAtual,
+        UUID idCommitOrigem,
         LocalDateTime dataCriacao
 ) {
 }

@@ -76,6 +76,7 @@ public class BranchServiceImpl implements BranchService {
         branch.setAutor(acesso.obterUsuario(idUsuario));
         branch.setNome(nome);
         branch.setMain(false);
+        branch.setCommitOrigem(origem);
         branch.setCommitAtual(origem);
         return VersionamentoMapper.branch(branchRepository.saveAndFlush(branch));
     }

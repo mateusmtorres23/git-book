@@ -79,3 +79,13 @@ A migração V3 usa a mesma regra e verifica todas as contas antes de atualizar 
 **Validação (25/11/2026)** — O build `mvn -o -B -DskipTests package` passou. A migração e o fluxo de autenticação ainda precisam de verificação com PostgreSQL.
 
 **Assinatura:** Mateus
+
+### 8. Preservar o commit de origem da branch
+
+Ao criar uma branch de trabalho, o commit escolhido na linha principal da `main` é registrado em `commitOrigem` e serve como ponta inicial. A API expõe `idCommitOrigem` e `idCommitAtual`. Os commits posteriores avançam apenas a ponta. A `main` e as branches criadas a partir de uma `main` vazia têm origem nula.
+
+A migração V5 segue o primeiro pai da ponta de cada branch existente até encontrar um commit criado fora dela. Ela grava esse commit como origem se pertencer ao mesmo livro e à linha principal da `main`. Históricos que não permitem confirmar essa origem mantêm o campo nulo.
+
+**Validação (25/11/2026)** — O build com `mvn -o -B -DskipTests package` passou. Em PostgreSQL 16 descartável, a V5 recuperou origens de branches com e sem commits próprios, preservou a ponta e manteve sem origem os casos sem base confirmável, incluindo histórico cíclico e referência a outro livro. O fluxo de criação e commit pela API ainda precisa de verificação integrada.
+
+**Assinatura:** Mateus
