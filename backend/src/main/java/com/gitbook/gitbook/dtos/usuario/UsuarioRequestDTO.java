@@ -1,5 +1,6 @@
 package com.gitbook.gitbook.dtos.usuario;
 
+import com.gitbook.gitbook.validation.SenhaNoLimiteBcrypt;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,7 +10,7 @@ public record UsuarioRequestDTO (
     String nomeUsuario,
     @NotBlank @Email @Size(max = 100)
     String email,
-    @NotBlank @Size(min = 8)
+    @NotBlank @Size(min = 8) @SenhaNoLimiteBcrypt
     String senha
 ){
 
