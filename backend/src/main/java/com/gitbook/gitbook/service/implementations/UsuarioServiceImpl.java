@@ -5,6 +5,8 @@ import com.gitbook.gitbook.dtos.usuario.UsuarioResponseDTO;
 import com.gitbook.gitbook.models.Usuario;
 import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.UsuarioService;
+import com.gitbook.gitbook.service.exceptions.ConflitoNegocioException;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,11 +23,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioResponseDTO buscarPorId(UUID idUsuario) {
-        Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
-
-        if (usuario == null) {
-            return null;
-        }
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
         return new UsuarioResponseDTO(
                 usuario.getIdUsuario(),
@@ -39,7 +38,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public UsuarioResponseDTO cadastrarUsuario(UsuarioRequestDTO dto) {
         if (verificarEmail(dto.email())) {
-            return null;
+            throw new ConflitoNegocioException("O e-mail já está cadastrado.");
         }
 
         Usuario usuario = new Usuario();
@@ -64,14 +63,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public UsuarioResponseDTO atualizarUsuario(UUID idUsuario, UsuarioRequestDTO dto) {
-        Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
-
-        if (usuario == null) {
-            return null;
-        }
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
         if (!usuario.getEmail().equals(dto.email()) && verificarEmail(dto.email())) {
-            return null;
+            throw new ConflitoNegocioException("O e-mail já está cadastrado.");
         }
 
         usuario.setNomeUsuario(dto.nomeUsuario());
