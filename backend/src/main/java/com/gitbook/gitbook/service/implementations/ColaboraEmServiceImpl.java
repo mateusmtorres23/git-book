@@ -13,6 +13,7 @@ import com.gitbook.gitbook.service.ColaboraEmService;
 import com.gitbook.gitbook.service.exceptions.ConflitoNegocioException;
 import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
 import com.gitbook.gitbook.service.support.AcessoLivroService;
+import com.gitbook.gitbook.service.support.EmailUsuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,7 +74,12 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
     public ColaboraEmResponseDTO cadastrar(ColaboraEmRequestDTO dto, UUID idSolicitante) {
         Livro livro = acesso.bloquearLivro(dto.idLivro());
         acesso.exigirGestor(livro, idSolicitante);
-        boolean jaColabora = colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(dto.idUsuario(), dto.idLivro());
+        if (!dto.isIdentificadorValido()) {
+            throw new IllegalArgumentException("Informe exatamente um identificador de usuário: UUID ou e-mail não vazio.");
+        }
+        Usuario usuario = localizarUsuario(dto);
+        boolean jaColabora = colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(
+                usuario.getIdUsuario(), dto.idLivro());
 
         if (jaColabora) {
             throw new ConflitoNegocioException("O usuário já colabora neste livro.");
@@ -82,8 +88,6 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
         if (dto.cargo() == null) {
             throw new IllegalArgumentException("O cargo é obrigatório.");
         }
-
-        Usuario usuario = usuarioRepository.findById(dto.idUsuario()).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + dto.idUsuario()));
 
         boolean ehDono = usuario.getIdUsuario().equals(livro.getDono().getIdUsuario());
 
@@ -100,6 +104,16 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
         ColaboraEm salva = colaboraEmRepository.save(colaboracao);
 
         return ColaboraEmResponseDTO.fromEntity(salva);
+    }
+
+    private Usuario localizarUsuario(ColaboraEmRequestDTO dto) {
+        if (dto.idUsuario() != null) {
+            return usuarioRepository.findById(dto.idUsuario())
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + dto.idUsuario()));
+        }
+        String email = EmailUsuario.normalizar(dto.email());
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma conta foi encontrada para o e-mail informado."));
     }
 
     @Transactional
