@@ -41,11 +41,10 @@ const campos = [
   { nome: 'senha', rotulo: 'Senha', tipo: 'password', autocomplete: 'new-password' },
 ] as const;
 
-export function RegisterPage() {
+export function RegisterPage({ aoCadastrar }: { aoCadastrar: (email: string) => void }) {
   const [erros, definirErros] = useState<ErrosCadastro>({});
   const [mensagens, definirMensagens] = useState<string[]>([]);
   const [enviando, definirEnviando] = useState(false);
-  const [contaCriada, definirContaCriada] = useState(false);
   const envioEmAndamento = useRef(false);
 
   async function enviarCadastro(evento: FormEvent<HTMLFormElement>) {
@@ -74,7 +73,7 @@ export function RegisterPage() {
       switch (resultado.tipo) {
         case 'criado':
           senha.value = '';
-          definirContaCriada(true);
+          aoCadastrar(dados.email);
           break;
         case 'emailDuplicado':
           definirErros({ email: resultado.mensagem });
@@ -95,36 +94,31 @@ export function RegisterPage() {
 
   return (
     <AuthLayout titulo="Criar conta">
-      <div role="status">
-        {contaCriada && <p className="auth-success">Conta criada com sucesso.</p>}
-      </div>
-      {!contaCriada && (
-        <form className="auth-form" onSubmit={enviarCadastro} noValidate>
-          {campos.map(({ nome, rotulo, tipo, autocomplete }) => (
-            <div className="auth-field" key={nome}>
-              <label htmlFor={`cadastro-${nome}`}>{rotulo}</label>
-              <input
-                id={`cadastro-${nome}`}
-                name={nome}
-                type={tipo}
-                autoComplete={autocomplete}
-                required
-                readOnly={enviando}
-                aria-invalid={Boolean(erros[nome])}
-                aria-describedby={erros[nome] ? `cadastro-${nome}-erro` : undefined}
-                onChange={() => definirErros((atuais) => ({ ...atuais, [nome]: undefined }))}
-              />
-              {erros[nome] && <p className="auth-error" id={`cadastro-${nome}-erro`} role="alert">{erros[nome]}</p>}
-            </div>
-          ))}
-          {mensagens.length > 0 && (
-            <ul className="auth-error" role="alert">
-              {mensagens.map((mensagem, indice) => <li key={indice}>{mensagem}</li>)}
-            </ul>
-          )}
-          <button type="submit" disabled={enviando}>{enviando ? 'Criando conta…' : 'Criar conta'}</button>
-        </form>
-      )}
+      <form className="auth-form" onSubmit={enviarCadastro} noValidate>
+        {campos.map(({ nome, rotulo, tipo, autocomplete }) => (
+          <div className="auth-field" key={nome}>
+            <label htmlFor={`cadastro-${nome}`}>{rotulo}</label>
+            <input
+              id={`cadastro-${nome}`}
+              name={nome}
+              type={tipo}
+              autoComplete={autocomplete}
+              required
+              readOnly={enviando}
+              aria-invalid={Boolean(erros[nome])}
+              aria-describedby={erros[nome] ? `cadastro-${nome}-erro` : undefined}
+              onChange={() => definirErros((atuais) => ({ ...atuais, [nome]: undefined }))}
+            />
+            {erros[nome] && <p className="auth-error" id={`cadastro-${nome}-erro`} role="alert">{erros[nome]}</p>}
+          </div>
+        ))}
+        {mensagens.length > 0 && (
+          <ul className="auth-error" role="alert">
+            {mensagens.map((mensagem, indice) => <li key={indice}>{mensagem}</li>)}
+          </ul>
+        )}
+        <button type="submit" disabled={enviando}>{enviando ? 'Criando conta…' : 'Criar conta'}</button>
+      </form>
     </AuthLayout>
   );
 }
