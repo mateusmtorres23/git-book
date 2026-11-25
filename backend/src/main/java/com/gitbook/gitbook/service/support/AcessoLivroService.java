@@ -64,10 +64,13 @@ public class AcessoLivroService {
 
     public void exigirEscrita(Livro livro, Branch branch, UUID idUsuario) {
         exigirLeitura(livro, idUsuario);
+        if (branch.isMain()) {
+            throw new AccessDeniedException("A branch main só pode ser atualizada pela aprovação de um Pull Request.");
+        }
         if (ehDono(livro, idUsuario)) {
             return;
         }
-        if (branch.isMain() || cargo(livro, idUsuario) != CargoColab.ESCRITOR
+        if (cargo(livro, idUsuario) != CargoColab.ESCRITOR
                 || !branch.getAutor().getIdUsuario().equals(idUsuario)) {
             throw new AccessDeniedException("Você só pode escrever na sua própria branch de trabalho.");
         }
