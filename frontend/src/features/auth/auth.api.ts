@@ -26,6 +26,15 @@ export type ResultadoLogin =
   | { tipo: 'dadosInvalidos'; mensagens: string[] }
   | { tipo: 'falhaComunicacao'; mensagem: string };
 
+export type ResultadoRenovacao =
+  | { tipo: 'autenticado'; sessao: SessaoAutenticada }
+  | { tipo: 'semSessao' }
+  | { tipo: 'falhaComunicacao'; mensagem: string };
+
+export type ResultadoLogout =
+  | { tipo: 'encerrado' }
+  | { tipo: 'falhaComunicacao'; mensagem: string };
+
 async function lerErrosDeValidacao(resposta: Response): Promise<string[]> {
   const problema: unknown = await resposta.json().catch(() => null);
 
@@ -79,6 +88,26 @@ async function obterCsrf(): Promise<{ headerName: string; token: string }> {
   throw new Error('Resposta CSRF inválida.');
 }
 
+async function lerSessao(resposta: Response): Promise<SessaoAutenticada | null> {
+  const sessao: unknown = await resposta.json().catch(() => null);
+  if (sessao && typeof sessao === 'object' && 'token' in sessao && 'expiraEm' in sessao
+    && textoValido(sessao.token) && textoValido(sessao.expiraEm)
+    && Number.isFinite(Date.parse(sessao.expiraEm))) {
+    return { token: sessao.token, expiraEm: sessao.expiraEm };
+  }
+
+  return null;
+}
+
+async function enviarOperacaoDeSessao(caminho: '/api/auth/refresh' | '/api/auth/logout') {
+  const csrf = await obterCsrf();
+  return fetch(caminho, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { [csrf.headerName]: csrf.token },
+  });
+}
+
 export async function entrar(dados: DadosLogin): Promise<ResultadoLogin> {
   const falha: ResultadoLogin = {
     tipo: 'falhaComunicacao',
@@ -96,13 +125,8 @@ export async function entrar(dados: DadosLogin): Promise<ResultadoLogin> {
 
     switch (resposta.status) {
       case 200: {
-        const sessao: unknown = await resposta.json();
-        if (sessao && typeof sessao === 'object' && 'token' in sessao && 'expiraEm' in sessao
-          && textoValido(sessao.token) && textoValido(sessao.expiraEm)
-          && Number.isFinite(Date.parse(sessao.expiraEm))) {
-          return { tipo: 'autenticado', sessao: { token: sessao.token, expiraEm: sessao.expiraEm } };
-        }
-        return falha;
+        const sessao = await lerSessao(resposta);
+        return sessao ? { tipo: 'autenticado', sessao } : falha;
       }
       case 401:
         return { tipo: 'credenciaisInvalidas', mensagem: 'E-mail ou senha inválidos.' };
@@ -114,4 +138,29 @@ export async function entrar(dados: DadosLogin): Promise<ResultadoLogin> {
   } catch {
     return falha;
   }
+}
+
+export async function renovarSessao(): Promise<ResultadoRenovacao> {
+  const resposta = await enviarOperacaoDeSessao('/api/auth/refresh').catch(() => null);
+  if (resposta?.status === 401) {
+    return { tipo: 'semSessao' };
+  }
+
+  if (resposta?.status === 200) {
+    const sessao = await lerSessao(resposta);
+    if (sessao) {
+      return { tipo: 'autenticado', sessao };
+    }
+  }
+
+  return { tipo: 'falhaComunicacao', mensagem: 'Não foi possível recuperar a sessão. Tente novamente.' };
+}
+
+export async function sair(): Promise<ResultadoLogout> {
+  const resposta = await enviarOperacaoDeSessao('/api/auth/logout').catch(() => null);
+  if (resposta?.status === 204) {
+    return { tipo: 'encerrado' };
+  }
+
+  return { tipo: 'falhaComunicacao', mensagem: 'Não foi possível sair. Tente novamente.' };
 }
