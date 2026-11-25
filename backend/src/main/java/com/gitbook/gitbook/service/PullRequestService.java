@@ -1,6 +1,7 @@
 package com.gitbook.gitbook.service;
 
 import com.gitbook.gitbook.dtos.livro.VersaoLivroResponseDTO;
+import com.gitbook.gitbook.dtos.pullrequest.PullRequestAlteracoesResponseDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestRejeicaoRequestDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestRequestDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestResponseDTO;
@@ -14,6 +15,7 @@ public interface PullRequestService {
     PullRequestResponseDTO buscarPorId(UUID idPullRequest, UUID idUsuario);
     List<PullRequestResponseDTO> listarPorLivro(UUID idLivro, StatusPullRequest status, UUID idUsuario);
     VersaoLivroResponseDTO consultarConteudoProposto(UUID idPullRequest, UUID idUsuario);
+    PullRequestAlteracoesResponseDTO consultarAlteracoes(UUID idPullRequest, UUID idUsuario);
     PullRequestResponseDTO aprovar(UUID idPullRequest, UUID idUsuario);
     PullRequestResponseDTO rejeitar(UUID idPullRequest, PullRequestRejeicaoRequestDTO dados, UUID idUsuario);
 }

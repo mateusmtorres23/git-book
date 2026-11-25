@@ -2,6 +2,7 @@ package com.gitbook.gitbook.controller;
 
 import com.gitbook.gitbook.controller.support.UsuarioAutenticadoResolver;
 import com.gitbook.gitbook.dtos.livro.VersaoLivroResponseDTO;
+import com.gitbook.gitbook.dtos.pullrequest.PullRequestAlteracoesResponseDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestRejeicaoRequestDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestRequestDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestResponseDTO;
@@ -46,6 +47,12 @@ public class PullRequestController {
     public VersaoLivroResponseDTO consultarConteudoProposto(@PathVariable UUID idPullRequest,
             Authentication autenticacao) {
         return pullRequestService.consultarConteudoProposto(idPullRequest, usuarioAutenticado.resolver(autenticacao));
+    }
+
+    @GetMapping("/pull-requests/{idPullRequest}/changes")
+    public PullRequestAlteracoesResponseDTO consultarAlteracoes(@PathVariable UUID idPullRequest,
+            Authentication autenticacao) {
+        return pullRequestService.consultarAlteracoes(idPullRequest, usuarioAutenticado.resolver(autenticacao));
     }
 
     @PatchMapping("/pull-requests/{idPullRequest}/approve")

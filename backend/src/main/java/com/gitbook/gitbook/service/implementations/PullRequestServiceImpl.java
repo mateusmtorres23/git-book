@@ -1,6 +1,9 @@
 package com.gitbook.gitbook.service.implementations;
 
+import com.gitbook.gitbook.dtos.capitulo.ConteudoCapituloResponseDTO;
 import com.gitbook.gitbook.dtos.livro.VersaoLivroResponseDTO;
+import com.gitbook.gitbook.dtos.pullrequest.PullRequestAlteracaoCapituloResponseDTO;
+import com.gitbook.gitbook.dtos.pullrequest.PullRequestAlteracoesResponseDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestRejeicaoRequestDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestRequestDTO;
 import com.gitbook.gitbook.dtos.pullrequest.PullRequestResponseDTO;
@@ -16,10 +19,12 @@ import com.gitbook.gitbook.service.support.AcessoLivroService;
 import com.gitbook.gitbook.service.support.ValidacaoService;
 import com.gitbook.gitbook.service.support.VersionamentoMapper;
 import com.gitbook.gitbook.service.support.VersionamentoService;
+import com.gitbook.gitbook.service.support.VersionamentoService.EstadoCapitulo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,6 +83,37 @@ public class PullRequestServiceImpl implements PullRequestService {
         UUID idLivro = autorizarLeitura(pr, idUsuario);
         exigirOrigemFixada(pr);
         return versionamento.versao(idLivro, pr.getCommitOrigem());
+    }
+
+    @Override
+    public PullRequestAlteracoesResponseDTO consultarAlteracoes(UUID idPullRequest, UUID idUsuario) {
+        PullRequest pr = obter(idPullRequest);
+        UUID idLivro = autorizarLeitura(pr, idUsuario);
+        exigirOrigemFixada(pr);
+
+        Commit origem = pr.getCommitOrigem();
+        Commit destinoNaAbertura = pr.getCommitDestinoNaAbertura();
+        Commit base = versionamento.baseComum(origem, destinoNaAbertura, idLivro);
+        var estadoBase = versionamento.reconstruir(base, idLivro);
+        var estadoOrigem = versionamento.reconstruir(origem, idLivro);
+
+        var alteracoes = versionamento.diferencas(estadoBase, estadoOrigem).stream()
+                .map(alteracao -> {
+                    UUID idCapitulo = alteracao.capitulo().getIdCapitulo();
+                    return new PullRequestAlteracaoCapituloResponseDTO(idCapitulo,
+                            mapearConteudo(estadoBase.get(idCapitulo)), mapearConteudo(estadoOrigem.get(idCapitulo)));
+                })
+                .sorted(Comparator.comparingInt((PullRequestAlteracaoCapituloResponseDTO alteracao) ->
+                                alteracao.depois() == null ? alteracao.antes().ordem() : alteracao.depois().ordem())
+                        .thenComparing(PullRequestAlteracaoCapituloResponseDTO::idCapitulo))
+                .toList();
+
+        return new PullRequestAlteracoesResponseDTO(idPullRequest, origem.getIdCommit(),
+                VersionamentoMapper.id(destinoNaAbertura), VersionamentoMapper.id(base), alteracoes);
+    }
+
+    private ConteudoCapituloResponseDTO mapearConteudo(EstadoCapitulo estado) {
+        return estado == null ? null : VersionamentoMapper.conteudo(estado.registro());
     }
 
     @Override
