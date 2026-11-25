@@ -57,3 +57,15 @@ Na estratégia da decisão 3, a leitura herda o estado do pai 1 e aplica as alte
 O service deverá criar os vínculos na mesma transação do commit, garantir a quantidade e os papéis dos pais, exigir o pai 1 quando houver pai 2, impedir ciclos e verificar o avanço concorrente da branch. A ordem será definida pelo backend a partir da operação, não recebida como escolha livre do usuário. Esta etapa implementa o contrato no model e no repository; os services e as migrations permanecem pendentes.
 
 **Assinatura:** Mateus
+
+### 6. Manter o login com tokens de renovação
+
+O Gitbook usará um JWT de acesso com validade de 15 minutos e uma sessão renovável com prazo absoluto de 7 dias. O frontend mantém o JWT em memória. Um cookie persistente com os atributos `HttpOnly`, `Secure` e `SameSite=Strict` guarda o token de renovação, permitindo retomar o acesso ao recarregar a página ou reabrir o navegador.
+
+O token de renovação será aleatório e opaco. O PostgreSQL guardará apenas seu hash SHA-256 e o histórico de uso. Cada renovação bloqueará a sessão, marcará o token atual como consumido e gravará seu sucessor na mesma transação. A troca mantém o prazo original. Se um token consumido reaparecer, o backend confirmará a revogação da sessão antes de recusar a solicitação.
+
+O logout revogará a sessão renovável e limpará o cookie. A troca de senha revogará as sessões renováveis da conta. Um JWT de acesso já emitido poderá ser usado até expirar.
+
+A [migração V2](../src/main/resources/db/migration/V2__cria_sessoes_de_autenticacao.sql) define as tabelas `sessao_auth` e `token_renovacao`. Os modelos JPA e os repositories foram adicionados. A execução da migração em PostgreSQL e a implementação da rotação, da revogação, das rotas e da integração com o frontend estão pendentes.
+
+**Assinatura:** Mateus
