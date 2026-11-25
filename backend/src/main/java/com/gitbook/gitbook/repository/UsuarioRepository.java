@@ -16,6 +16,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     boolean existsByEmail(String email);
     Optional<Usuario> findByEmail(String email);
 
+    @Query("select u.idUsuario from Usuario u where u.email = :email")
+    Optional<UUID> findIdByEmail(@Param("email") String email);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from Usuario u where u.idUsuario = :idUsuario")
     Optional<Usuario> findByIdForUpdate(@Param("idUsuario") UUID idUsuario);
