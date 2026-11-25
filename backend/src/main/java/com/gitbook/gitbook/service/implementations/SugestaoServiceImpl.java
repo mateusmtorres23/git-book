@@ -7,6 +7,7 @@ import com.gitbook.gitbook.models.ColaboraEm;
 import com.gitbook.gitbook.models.Livro;
 import com.gitbook.gitbook.models.PullRequest;
 import com.gitbook.gitbook.models.Sugestao;
+import com.gitbook.gitbook.models.Usuario;
 import com.gitbook.gitbook.models.enums.StatusPullRequest;
 import com.gitbook.gitbook.models.enums.StatusSugestao;
 import com.gitbook.gitbook.models.enums.CargoColab;
@@ -15,11 +16,14 @@ import com.gitbook.gitbook.repository.ColaboraEmRepository;
 import com.gitbook.gitbook.repository.LivroRepository;
 import com.gitbook.gitbook.repository.PullRequestRepository;
 import com.gitbook.gitbook.repository.SugestaoRepository;
-import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.SugestaoService;
+import com.gitbook.gitbook.service.exceptions.ConflitoVersionamentoException;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
+import com.gitbook.gitbook.service.support.AcessoLivroService;
 import com.gitbook.gitbook.service.support.VersionamentoService;
 import com.gitbook.gitbook.service.support.VersionamentoService.EstadoCapitulo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,60 +35,49 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class
-SugestaoServiceImpl implements SugestaoService {
+public class SugestaoServiceImpl implements SugestaoService {
     private final SugestaoRepository sugestaoRepository;
     private final PullRequestRepository pullRequestRepository;
     private final LivroRepository livroRepository;
     private final BranchRepository branchRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final AcessoLivroService acesso;
     private final ColaboraEmRepository colaboraEmRepository;
     private final VersionamentoService versionamento;
 
     @Override
     @Transactional
     public SugestaoResponseDTO adicionarSugestao(UUID idPullRequest, SugestaoRequestDTO dados, UUID idUsuario) {
-        if (idPullRequest == null || idUsuario == null || !dadosValidos(dados)) {
-            return null;
+        if (idPullRequest == null || !dadosValidos(dados)) {
+            throw new IllegalArgumentException("Os dados da sugestão são inválidos.");
         }
-        Livro livro = bloquearLivroDoPullRequest(idPullRequest);
+        Usuario usuario = acesso.obterUsuario(idUsuario);
+        Livro livro = bloquearLivroDoPullRequest(idPullRequest, "Pull Request não encontrado.");
+        exigirVisibilidade(livro, idUsuario, "Pull Request não encontrado.");
+        exigirRevisor(livro, idUsuario);
 
-        if (livro == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
+        PullRequest pullRequest = obterPullRequest(idPullRequest);
+        exigirAberto(pullRequest);
+        if (pullRequest.getCommitOrigem() == null) {
+            throw new ConflitoVersionamentoException("O Pull Request não possui uma versão de origem fixada.");
         }
-        if (livro.getDono().getIdUsuario().equals(idUsuario)) {
-            return null;
-        }
-        ColaboraEm colaboracao = colaboraEmRepository
-                .findByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro()).orElse(null);
-        if (colaboracao == null || colaboracao.getCargo() != CargoColab.REVISOR) {
-            return null;
-        }
-
-        PullRequest pullRequest = pullRequestRepository.findById(idPullRequest).orElse(null);
-        if (pullRequest == null || pullRequest.getStatus() != StatusPullRequest.ABERTA
-                || pullRequest.getCommitOrigem() == null
-                || !livro.getIdLivro().equals(pullRequest.getCommitOrigem().getIdLivro())) {
-            return null;
+        if (!livro.getIdLivro().equals(pullRequest.getCommitOrigem().getIdLivro())) {
+            throw new IllegalStateException("O commit de origem não pertence ao livro do Pull Request.");
         }
 
         // Usa o commit fixado no PR, mesmo que a branch já tenha novos commits.
         EstadoCapitulo capitulo = versionamento.reconstruir(
                 pullRequest.getCommitOrigem(), livro.getIdLivro()).get(dados.idCapitulo());
         if (capitulo == null || dados.posicaoFim() > capitulo.conteudo().length()) {
-            return null;
+            throw new IllegalArgumentException("A seleção não pertence ao conteúdo proposto.");
         }
         String trecho = capitulo.conteudo().substring(dados.posicaoInicial(), dados.posicaoFim());
         if (!trecho.equals(dados.trechoOriginal())) {
-            return null;
+            throw new IllegalArgumentException("O trecho informado difere do conteúdo proposto.");
         }
 
         Sugestao sugestao = new Sugestao();
         sugestao.setCapitulo(capitulo.capitulo());
-        sugestao.setUsuario(usuarioRepository.findById(idUsuario).orElse(null));
-        if (sugestao.getUsuario() == null) {
-            return null;
-        }
+        sugestao.setUsuario(usuario);
         sugestao.setPullRequest(pullRequest);
         sugestao.setCategoria(dados.categoria());
         sugestao.setTrechoOriginal(dados.trechoOriginal());
@@ -99,38 +92,17 @@ SugestaoServiceImpl implements SugestaoService {
 
     @Override
     public SugestaoResponseDTO buscarPorId(UUID idSugestao, UUID idUsuario) {
-        if (idSugestao == null || idUsuario == null) {
-            return null;
-        }
-        Sugestao sugestao = sugestaoRepository.findById(idSugestao).orElse(null);
-        if (sugestao == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
-        }
-        Livro livro = obterLivro(sugestao.getPullRequest());
-        if (livro == null) {
-            return null;
-        }
-        if (!livro.getDono().getIdUsuario().equals(idUsuario)
-                && !colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro())) {
-            return null;
-        }
+        acesso.obterUsuario(idUsuario);
+        Sugestao sugestao = obterSugestao(idSugestao);
+        exigirVisibilidade(obterLivro(sugestao.getPullRequest()), idUsuario, "Sugestão não encontrada.");
         return montarResposta(sugestao);
     }
 
     @Override
     public List<SugestaoResponseDTO> listarSugestoes(UUID idPullRequest, UUID idUsuario) {
-        if (idPullRequest == null || idUsuario == null) {
-            return null;
-        }
-        PullRequest pullRequest = pullRequestRepository.findById(idPullRequest).orElse(null);
-        Livro livro = obterLivro(pullRequest);
-        if (livro == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
-        }
-        if (!livro.getDono().getIdUsuario().equals(idUsuario)
-                && !colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro())) {
-            return null;
-        }
+        acesso.obterUsuario(idUsuario);
+        PullRequest pullRequest = obterPullRequest(idPullRequest);
+        exigirVisibilidade(obterLivro(pullRequest), idUsuario, "Pull Request não encontrado.");
 
         List<SugestaoResponseDTO> respostas = new ArrayList<>();
         for (Sugestao sugestao : sugestaoRepository.findByPullRequest(pullRequest)) {
@@ -142,32 +114,19 @@ SugestaoServiceImpl implements SugestaoService {
     @Override
     @Transactional
     public SugestaoResponseDTO retirarSugestao(UUID idSugestao, UUID idUsuario) {
-        if (idSugestao == null || idUsuario == null) {
-            return null;
-        }
-        UUID idPullRequest = sugestaoRepository.findPullRequestIdBySugestao(idSugestao).orElse(null);
-        if (idPullRequest == null) {
-            return null;
-        }
-        Livro livro = bloquearLivroDoPullRequest(idPullRequest);
-        if (livro == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
-        }
-        if (livro.getDono().getIdUsuario().equals(idUsuario)) {
-            return null;
-        }
-        ColaboraEm colaboracao = colaboraEmRepository
-                .findByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro()).orElse(null);
-        if (colaboracao == null || colaboracao.getCargo() != CargoColab.REVISOR) {
-            return null;
-        }
+        acesso.obterUsuario(idUsuario);
+        UUID idPullRequest = sugestaoRepository.findPullRequestIdBySugestao(idSugestao)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Sugestão não encontrada."));
+        Livro livro = bloquearLivroDoPullRequest(idPullRequest, "Sugestão não encontrada.");
+        exigirVisibilidade(livro, idUsuario, "Sugestão não encontrada.");
+        exigirRevisor(livro, idUsuario);
 
         // Carrega a sugestão após o lock para enxergar a última retirada confirmada.
-        Sugestao sugestao = sugestaoRepository.findById(idSugestao).orElse(null);
-        if (sugestao == null || !sugestao.getUsuario().getIdUsuario().equals(idUsuario)
-                || sugestao.getPullRequest().getStatus() != StatusPullRequest.ABERTA) {
-            return null;
+        Sugestao sugestao = obterSugestao(idSugestao);
+        if (!sugestao.getUsuario().getIdUsuario().equals(idUsuario)) {
+            throw new AccessDeniedException("Somente o autor pode retirar a sugestão.");
         }
+        exigirAberto(sugestao.getPullRequest());
         if (sugestao.getStatus() == StatusSugestao.RETIRADA) {
             return montarResposta(sugestao);
         }
@@ -177,21 +136,49 @@ SugestaoServiceImpl implements SugestaoService {
         return montarResposta(sugestaoRepository.saveAndFlush(sugestao));
     }
 
-    private Livro obterLivro(PullRequest pullRequest) {
-        if (pullRequest == null) {
-            return null;
-        }
-        Branch destino = branchRepository.findById(pullRequest.getIdBranchDestino()).orElse(null);
-        return destino == null ? null : destino.getLivro();
+    private Sugestao obterSugestao(UUID idSugestao) {
+        return sugestaoRepository.findById(idSugestao)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Sugestão não encontrada."));
     }
 
-    private Livro bloquearLivroDoPullRequest(UUID idPullRequest) {
-        UUID idLivro = pullRequestRepository.findLivroIdByPullRequest(idPullRequest).orElse(null);
-        if (idLivro == null) {
-            return null;
+    private PullRequest obterPullRequest(UUID idPullRequest) {
+        return pullRequestRepository.findById(idPullRequest)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pull Request não encontrado."));
+    }
+
+    private Livro obterLivro(PullRequest pullRequest) {
+        return branchRepository.findById(pullRequest.getIdBranchDestino())
+                .map(Branch::getLivro).orElse(null);
+    }
+
+    private Livro bloquearLivroDoPullRequest(UUID idPullRequest, String mensagemIndisponivel) {
+        UUID idLivro = pullRequestRepository.findLivroIdByPullRequest(idPullRequest)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(mensagemIndisponivel));
+        // O merge usa o mesmo lock para serializar alterações de sugestões e decisões.
+        return livroRepository.findByIdForUpdate(idLivro)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(mensagemIndisponivel));
+    }
+
+    private void exigirVisibilidade(Livro livro, UUID idUsuario, String mensagemIndisponivel) {
+        if (livro == null || (!livro.getDono().getIdUsuario().equals(idUsuario)
+                && !colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro()))) {
+            throw new RecursoNaoEncontradoException(mensagemIndisponivel);
         }
-        // O merge usa o mesmo lock: criar ou retirar sugestões não disputa com a decisão.
-        return livroRepository.findByIdForUpdate(idLivro).orElse(null);
+    }
+
+    private void exigirRevisor(Livro livro, UUID idUsuario) {
+        ColaboraEm colaboracao = colaboraEmRepository
+                .findByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro()).orElse(null);
+        if (livro.getDono().getIdUsuario().equals(idUsuario)
+                || colaboracao == null || colaboracao.getCargo() != CargoColab.REVISOR) {
+            throw new AccessDeniedException("Somente revisores podem criar ou retirar sugestões.");
+        }
+    }
+
+    private void exigirAberto(PullRequest pullRequest) {
+        if (pullRequest.getStatus() != StatusPullRequest.ABERTA) {
+            throw new ConflitoVersionamentoException("O Pull Request já foi encerrado.");
+        }
     }
 
     private boolean dadosValidos(SugestaoRequestDTO dados) {
