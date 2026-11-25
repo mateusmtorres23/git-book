@@ -9,8 +9,9 @@ import com.gitbook.gitbook.models.Usuario;
 import com.gitbook.gitbook.repository.BranchRepository;
 import com.gitbook.gitbook.repository.ColaboraEmRepository;
 import com.gitbook.gitbook.repository.LivroRepository;
-import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.LivroService;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
+import com.gitbook.gitbook.service.support.AcessoLivroService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,21 +28,15 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class LivroServiceImpl implements LivroService {
     private final LivroRepository livroRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final AcessoLivroService acesso;
     private final BranchRepository branchRepository;
     private final ColaboraEmRepository colaboraEmRepository;
 
     @Override
     @Transactional
     public LivroResponseDTO criarLivro(UUID idUsuario, LivroRequestDTO dados) {
-        if (idUsuario == null || !dadosValidos(dados)) {
-            return null;
-        }
-
-        Usuario dono = usuarioRepository.findById(idUsuario).orElse(null);
-        if (dono == null) {
-            return null;
-        }
+        validarDados(dados);
+        Usuario dono = acesso.obterUsuario(idUsuario);
 
         Livro livro = new Livro();
         livro.setDono(dono);
@@ -63,17 +58,11 @@ public class LivroServiceImpl implements LivroService {
 
     @Override
     public LivroResponseDTO buscarLivro(UUID idLivro, UUID idUsuario) {
-        if (idLivro == null || idUsuario == null) {
-            return null;
-        }
-
-        Livro livro = livroRepository.findById(idLivro).orElse(null);
-        if (livro == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
-        }
+        acesso.obterUsuario(idUsuario);
+        Livro livro = acesso.obterLivro(idLivro);
         if (!livro.getDono().getIdUsuario().equals(idUsuario)
                 && !colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, idLivro)) {
-            return null;
+            throw new RecursoNaoEncontradoException("Livro não encontrado.");
         }
 
         return montarResposta(livro);
@@ -81,13 +70,7 @@ public class LivroServiceImpl implements LivroService {
 
     @Override
     public List<LivroResponseDTO> listarLivros(UUID idUsuario) {
-        if (idUsuario == null) {
-            return null;
-        }
-        Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
-        if (usuario == null) {
-            return null;
-        }
+        Usuario usuario = acesso.obterUsuario(idUsuario);
 
         // O mapa evita repetir um livro caso o dono também tenha uma colaboração.
         Map<UUID, Livro> livros = new LinkedHashMap<>();
@@ -111,16 +94,11 @@ public class LivroServiceImpl implements LivroService {
     @Override
     @Transactional
     public LivroResponseDTO atualizarLivro(UUID idLivro, LivroRequestDTO dados, UUID idUsuario) {
-        if (idLivro == null || idUsuario == null || !dadosValidos(dados)) {
-            return null;
-        }
-
-        Livro livro = livroRepository.findByIdForUpdate(idLivro).orElse(null);
-        if (livro == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
-        }
+        validarDados(dados);
+        acesso.obterUsuario(idUsuario);
+        Livro livro = acesso.bloquearLivro(idLivro);
         if (!livro.getDono().getIdUsuario().equals(idUsuario)) {
-            return null;
+            throw new RecursoNaoEncontradoException("Livro não encontrado.");
         }
 
         livro.setNomeLivro(dados.nomeLivro().strip());
@@ -128,9 +106,11 @@ public class LivroServiceImpl implements LivroService {
         return montarResposta(livroRepository.saveAndFlush(livro));
     }
 
-    private boolean dadosValidos(LivroRequestDTO dados) {
-        return dados != null && dados.nomeLivro() != null
-                && !dados.nomeLivro().isBlank() && dados.nomeLivro().length() <= 150;
+    private void validarDados(LivroRequestDTO dados) {
+        if (dados == null || dados.nomeLivro() == null
+                || dados.nomeLivro().isBlank() || dados.nomeLivro().length() > 150) {
+            throw new IllegalArgumentException("Informe um nome de livro válido com até 150 caracteres.");
+        }
     }
 
     private LivroResponseDTO montarResposta(Livro livro) {

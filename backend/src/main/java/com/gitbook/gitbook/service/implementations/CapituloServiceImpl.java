@@ -5,8 +5,9 @@ import com.gitbook.gitbook.models.Branch;
 import com.gitbook.gitbook.models.Livro;
 import com.gitbook.gitbook.repository.BranchRepository;
 import com.gitbook.gitbook.repository.ColaboraEmRepository;
-import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.CapituloService;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
+import com.gitbook.gitbook.service.support.AcessoLivroService;
 import com.gitbook.gitbook.service.support.VersionamentoService;
 import com.gitbook.gitbook.service.support.VersionamentoService.EstadoCapitulo;
 import lombok.RequiredArgsConstructor;
@@ -23,24 +24,13 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class CapituloServiceImpl implements CapituloService {
     private final BranchRepository branchRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final AcessoLivroService acesso;
     private final ColaboraEmRepository colaboraEmRepository;
     private final VersionamentoService versionamento;
 
     @Override
     public List<CapituloResponseDTO> buscarPorBranch(UUID idBranch, UUID idUsuario) {
-        if (idBranch == null || idUsuario == null) {
-            return null;
-        }
-        Branch branch = branchRepository.findById(idBranch).orElse(null);
-        if (branch == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
-        }
-        Livro livro = branch.getLivro();
-        if (!livro.getDono().getIdUsuario().equals(idUsuario)
-                && !colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro())) {
-            return null;
-        }
+        Branch branch = obterBranchVisivel(idBranch, idUsuario);
 
         List<EstadoCapitulo> capitulos = new ArrayList<>(versionamento.reconstruir(
                 branch.getCommitAtual(), branch.getLivro().getIdLivro()).values());
@@ -55,25 +45,26 @@ public class CapituloServiceImpl implements CapituloService {
 
     @Override
     public CapituloResponseDTO buscarCapitulo(UUID idCapitulo, UUID idUsuario, UUID idBranch) {
-        if (idCapitulo == null || idBranch == null || idUsuario == null) {
-            return null;
-        }
-        Branch branch = branchRepository.findById(idBranch).orElse(null);
-        if (branch == null || !usuarioRepository.existsById(idUsuario)) {
-            return null;
-        }
-        Livro livro = branch.getLivro();
-        if (!livro.getDono().getIdUsuario().equals(idUsuario)
-                && !colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro())) {
-            return null;
-        }
+        Branch branch = obterBranchVisivel(idBranch, idUsuario);
 
         EstadoCapitulo capitulo = versionamento.reconstruir(
                 branch.getCommitAtual(), branch.getLivro().getIdLivro()).get(idCapitulo);
         if (capitulo == null) {
-            return null;
+            throw new RecursoNaoEncontradoException("Capítulo não encontrado.");
         }
         return montarResposta(capitulo);
+    }
+
+    private Branch obterBranchVisivel(UUID idBranch, UUID idUsuario) {
+        acesso.obterUsuario(idUsuario);
+        Branch branch = branchRepository.findById(idBranch)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Branch não encontrada."));
+        Livro livro = branch.getLivro();
+        if (!livro.getDono().getIdUsuario().equals(idUsuario)
+                && !colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro())) {
+            throw new RecursoNaoEncontradoException("Branch não encontrada.");
+        }
+        return branch;
     }
 
     private CapituloResponseDTO montarResposta(EstadoCapitulo estado) {
