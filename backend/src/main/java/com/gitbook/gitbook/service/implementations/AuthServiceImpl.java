@@ -7,6 +7,7 @@ import com.gitbook.gitbook.service.AuthService;
 import com.gitbook.gitbook.service.SessaoAuthService;
 import com.gitbook.gitbook.service.SessaoAuthService.Renovacao;
 import com.gitbook.gitbook.service.TokenAcessoService;
+import com.gitbook.gitbook.service.support.EmailUsuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
@@ -27,14 +28,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public SessaoAutenticada login(String email, String senha) {
-        Usuario usuario = usuarioRepository.findIdByEmail(email)
+        String emailNormalizado = EmailUsuario.normalizar(email);
+        Usuario usuario = usuarioRepository.findIdByEmail(emailNormalizado)
                 .flatMap(usuarioRepository::findByIdForUpdate)
-                .filter(conta -> conta.getEmail().equals(email))
+                .filter(conta -> conta.getEmail().equals(emailNormalizado))
                 .orElse(null);
 
         // O provedor também executa a verificação de senha quando o e-mail não existe.
         try {
-            autenticadorCredenciais.autenticar(email, senha);
+            autenticadorCredenciais.autenticar(emailNormalizado, senha);
         } catch (BadCredentialsException erro) {
             throw new BadCredentialsException(CREDENCIAIS_INVALIDAS, erro);
         }

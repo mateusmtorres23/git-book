@@ -69,3 +69,13 @@ O logout revogará a sessão renovável e limpará o cookie. A troca de senha re
 A [migração V2](../src/main/resources/db/migration/V2__cria_sessoes_de_autenticacao.sql) define as tabelas `sessao_auth` e `token_renovacao`. Os modelos JPA e os repositories foram adicionados. A execução da migração em PostgreSQL e a implementação da rotação, da revogação, das rotas e da integração com o frontend estão pendentes.
 
 **Assinatura:** Mateus
+
+### 7. Normalizar e-mails das contas
+
+O cadastro, a alteração de conta e o login tratam o endereço de e-mail inteiro como insensível a maiúsculas e minúsculas. A aplicação converte o valor para minúsculas com `Locale.ROOT` e grava essa forma no PostgreSQL. A validação de formato permanece a mesma.
+
+A migração V3 usa a mesma regra e verifica todas as contas antes de atualizar os endereços. Se duas contas convergirem para o mesmo valor, a migração é interrompida e informa os identificadores para resolução pela equipe. A restrição de unicidade existente protege contra cadastros concorrentes com o mesmo endereço.
+
+**Validação (25/11/2026)** — O build `mvn -o -B -DskipTests package` passou. A migração e o fluxo de autenticação ainda precisam de verificação com PostgreSQL.
+
+**Assinatura:** Mateus

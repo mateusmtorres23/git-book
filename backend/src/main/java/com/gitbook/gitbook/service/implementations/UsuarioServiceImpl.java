@@ -8,6 +8,7 @@ import com.gitbook.gitbook.service.SessaoAuthService;
 import com.gitbook.gitbook.service.UsuarioService;
 import com.gitbook.gitbook.service.exceptions.ConflitoNegocioException;
 import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
+import com.gitbook.gitbook.service.support.EmailUsuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,13 +39,14 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public UsuarioResponseDTO cadastrarUsuario(UsuarioRequestDTO dto) {
-        if (verificarEmail(dto.email())) {
+        String email = EmailUsuario.normalizar(dto.email());
+        if (usuarioRepository.existsByEmail(email)) {
             throw new ConflitoNegocioException("O e-mail já está cadastrado.");
         }
 
         Usuario usuario = new Usuario();
         usuario.setNomeUsuario(dto.nomeUsuario());
-        usuario.setEmail(dto.email());
+        usuario.setEmail(email);
         usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
 
         Usuario usuarioSalvo = usuarioRepository.saveAndFlush(usuario);
@@ -58,7 +60,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     public boolean verificarEmail(String email) {
-        return usuarioRepository.existsByEmail(email);
+        return usuarioRepository.existsByEmail(EmailUsuario.normalizar(email));
     }
 
     @Override
@@ -67,12 +69,13 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = usuarioRepository.findByIdForUpdate(idUsuario)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
-        if (!usuario.getEmail().equals(dto.email()) && verificarEmail(dto.email())) {
+        String email = EmailUsuario.normalizar(dto.email());
+        if (!usuario.getEmail().equals(email) && usuarioRepository.existsByEmail(email)) {
             throw new ConflitoNegocioException("O e-mail já está cadastrado.");
         }
 
         usuario.setNomeUsuario(dto.nomeUsuario());
-        usuario.setEmail(dto.email());
+        usuario.setEmail(email);
         boolean senhaAlterada = !passwordEncoder.matches(dto.senha(), usuario.getSenhaHash());
         if (senhaAlterada) {
             usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
