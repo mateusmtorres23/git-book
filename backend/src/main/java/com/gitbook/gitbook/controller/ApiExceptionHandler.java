@@ -41,9 +41,26 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return problema(HttpStatus.CONFLICT, erro.getMessage());
     }
 
-    @ExceptionHandler({DataIntegrityViolationException.class, ConcurrencyFailureException.class})
-    public ProblemDetail conflitoPersistencia(RuntimeException erro) {
+    @ExceptionHandler(ConcurrencyFailureException.class)
+    public ProblemDetail conflitoConcorrencia() {
         return problema(HttpStatus.CONFLICT, "A operação conflita com o estado atual dos dados. Atualize e tente novamente.");
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail violacaoIntegridade(DataIntegrityViolationException erro) {
+        for (Throwable causa = erro.getCause(); causa != null; causa = causa.getCause()) {
+            if (causa instanceof org.hibernate.exception.ConstraintViolationException violacao
+                    && "23505".equals(violacao.getSQLState())) {
+                String restricao = violacao.getConstraintName();
+                if ("usuario_email_key".equals(restricao)) {
+                    return problema(HttpStatus.CONFLICT, "O e-mail já está cadastrado.");
+                }
+                if ("uq_colaboracao_usuario_livro".equals(restricao)) {
+                    return problema(HttpStatus.CONFLICT, "O usuário já colabora neste livro.");
+                }
+            }
+        }
+        return problema(HttpStatus.INTERNAL_SERVER_ERROR, "Não foi possível concluir a operação.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
