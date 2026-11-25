@@ -4,11 +4,11 @@ import com.gitbook.gitbook.dtos.usuario.UsuarioRequestDTO;
 import com.gitbook.gitbook.dtos.usuario.UsuarioResponseDTO;
 import com.gitbook.gitbook.models.Usuario;
 import com.gitbook.gitbook.repository.UsuarioRepository;
+import com.gitbook.gitbook.service.SessaoAuthService;
 import com.gitbook.gitbook.service.UsuarioService;
 import com.gitbook.gitbook.service.exceptions.ConflitoNegocioException;
 import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
+    private final SessaoAuthService sessaoAuthService;
 
     @Override
     public UsuarioResponseDTO buscarPorId(UUID idUsuario) {
@@ -63,7 +64,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public UsuarioResponseDTO atualizarUsuario(UUID idUsuario, UsuarioRequestDTO dto) {
-        Usuario usuario = usuarioRepository.findById(idUsuario)
+        Usuario usuario = usuarioRepository.findByIdForUpdate(idUsuario)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
 
         if (!usuario.getEmail().equals(dto.email()) && verificarEmail(dto.email())) {
@@ -72,9 +73,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         usuario.setNomeUsuario(dto.nomeUsuario());
         usuario.setEmail(dto.email());
-        usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
+        boolean senhaAlterada = !passwordEncoder.matches(dto.senha(), usuario.getSenhaHash());
+        if (senhaAlterada) {
+            usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
+        }
 
         Usuario usuarioSalvo = usuarioRepository.saveAndFlush(usuario);
+        if (senhaAlterada) {
+            sessaoAuthService.revogarSessoesDoUsuario(idUsuario);
+        }
 
         return new UsuarioResponseDTO(
                 usuarioSalvo.getIdUsuario(),
