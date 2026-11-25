@@ -27,7 +27,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -114,25 +113,21 @@ public class SugestaoServiceImpl implements SugestaoService {
     @Override
     @Transactional
     public SugestaoResponseDTO retirarSugestao(UUID idSugestao, UUID idUsuario) {
-        acesso.obterUsuario(idUsuario);
+        Usuario responsavel = acesso.obterUsuario(idUsuario);
         UUID idPullRequest = sugestaoRepository.findPullRequestIdBySugestao(idSugestao)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Sugestão não encontrada."));
         Livro livro = bloquearLivroDoPullRequest(idPullRequest, "Sugestão não encontrada.");
         exigirVisibilidade(livro, idUsuario, "Sugestão não encontrada.");
-        exigirRevisor(livro, idUsuario);
 
         // Carrega a sugestão após o lock para enxergar a última retirada confirmada.
         Sugestao sugestao = obterSugestao(idSugestao);
-        if (!sugestao.getUsuario().getIdUsuario().equals(idUsuario)) {
-            throw new AccessDeniedException("Somente o autor pode retirar a sugestão.");
-        }
+        exigirPermissaoDeRetirada(livro, sugestao, idUsuario);
         exigirAberto(sugestao.getPullRequest());
         if (sugestao.getStatus() == StatusSugestao.RETIRADA) {
             return montarResposta(sugestao);
         }
 
-        sugestao.setStatus(StatusSugestao.RETIRADA);
-        sugestao.setDataAvaliacao(LocalDateTime.now());
+        sugestao.retirar(responsavel);
         return montarResposta(sugestaoRepository.saveAndFlush(sugestao));
     }
 
@@ -167,11 +162,24 @@ public class SugestaoServiceImpl implements SugestaoService {
     }
 
     private void exigirRevisor(Livro livro, UUID idUsuario) {
-        ColaboraEm colaboracao = colaboraEmRepository
-                .findByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro()).orElse(null);
-        if (livro.getDono().getIdUsuario().equals(idUsuario)
-                || colaboracao == null || colaboracao.getCargo() != CargoColab.REVISOR) {
-            throw new AccessDeniedException("Somente revisores podem criar ou retirar sugestões.");
+        if (!ehRevisor(livro, idUsuario)) {
+            throw new AccessDeniedException("Somente revisores podem criar sugestões.");
+        }
+    }
+
+    private boolean ehRevisor(Livro livro, UUID idUsuario) {
+        return !livro.getDono().getIdUsuario().equals(idUsuario)
+                && colaboraEmRepository.findByUsuario_IdUsuarioAndLivro_IdLivro(idUsuario, livro.getIdLivro())
+                        .map(ColaboraEm::getCargo).orElse(null) == CargoColab.REVISOR;
+    }
+
+    private void exigirPermissaoDeRetirada(Livro livro, Sugestao sugestao, UUID idUsuario) {
+        UUID idAutor = sugestao.getUsuario().getIdUsuario();
+        boolean autorEhRevisor = ehRevisor(livro, idAutor);
+        boolean autorizado = autorEhRevisor ? idAutor.equals(idUsuario) : livro.getDono().getIdUsuario().equals(idUsuario);
+        if (!autorizado) {
+            throw new AccessDeniedException("O autor pode retirar a sugestão enquanto for revisor. "
+                    + "Se ele perder essa permissão, a retirada cabe ao gestor.");
         }
     }
 
@@ -192,10 +200,12 @@ public class SugestaoServiceImpl implements SugestaoService {
     }
 
     private SugestaoResponseDTO montarResposta(Sugestao sugestao) {
+        Usuario usuarioRetirada = sugestao.getUsuarioRetirada();
         return new SugestaoResponseDTO(sugestao.getIdSugestao(), sugestao.getCapitulo().getIdCapitulo(),
                 sugestao.getUsuario().getIdUsuario(), sugestao.getPullRequest().getIdPullRequest(),
                 sugestao.getCategoria(), sugestao.getTrechoOriginal(), sugestao.getTrechoSugerido(),
                 sugestao.getJustificativa(), sugestao.getPosicaoInicial(), sugestao.getPosicaoFim(),
-                sugestao.getStatus(), sugestao.getDataSugestao(), sugestao.getDataAvaliacao());
+                sugestao.getStatus(), sugestao.getDataSugestao(), sugestao.getDataAvaliacao(),
+                usuarioRetirada == null ? null : usuarioRetirada.getIdUsuario());
     }
 }

@@ -36,9 +36,12 @@ Falhas de infraestrutura continuam sendo tratadas pelo Spring e pelo banco. Não
 - Criar exige colaborador com papel de revisor e Pull Request aberto. O dono não recebe automaticamente o papel de revisor.
 - O capítulo e o trecho precisam existir no commit de origem fixado no Pull Request. Novos commits da branch não alteram essa base.
 - Posições usam índices de texto Java/JavaScript (UTF-16), começando em zero, com início inclusivo e fim exclusivo.
-- Retirar exige o próprio autor, ainda como revisor, e Pull Request aberto. O status passa a `RETIRADA`, preenchendo `dataAvaliacao` e mantendo o histórico. Retirada repetida preserva a primeira data.
+- Com o Pull Request aberto, o autor pode retirar a própria sugestão enquanto for revisor. Se mudar de papel ou perder o vínculo, o gestor pode retirá-la pela mesma rota. A mudança de papel ou a remoção do vínculo mantém a sugestão pendente até que alguém autorizado a retire.
+- A retirada muda o status para `RETIRADA` e registra `dataAvaliacao` e `idUsuarioRetirada`. O campo `idUsuario` continua identificando o autor. Uma retirada autorizada repetida preserva a data e o responsável originais. Em retiradas anteriores à migração V4, `idUsuarioRetirada` é nulo.
 - Dono e colaboradores podem consultar sugestões, inclusive de Pull Requests encerrados.
 - Criação e retirada usam o mesmo lock do livro usado pelo merge, para serializar alterações de sugestões e decisões do Pull Request.
+
+**Validação da retirada (25/11/2026)** — Os nove testes existentes de contrato e serviço passaram. Uma verificação isolada confirmou as permissões de retirada, a autoria e a preservação do responsável e da data em chamadas repetidas. A migração V4 e a aprovação do Pull Request após a retirada ainda precisam de verificação integrada com PostgreSQL.
 
 ## Controllers e rotas
 

@@ -18,6 +18,7 @@ public record SugestaoResponseDTO(
         Integer posicaoFim,
         StatusSugestao status,
         LocalDateTime dataSugestao,
-        LocalDateTime dataAvaliacao
+        LocalDateTime dataAvaliacao,
+        UUID idUsuarioRetirada
 ) {
 }

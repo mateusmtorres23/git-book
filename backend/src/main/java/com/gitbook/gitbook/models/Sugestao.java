@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Setter
@@ -64,4 +65,14 @@ public class Sugestao {
 
     @Column(name = "data_avaliacao")
     private LocalDateTime dataAvaliacao;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario_retirada")
+    private Usuario usuarioRetirada;
+
+    public void retirar(Usuario responsavel) {
+        this.usuarioRetirada = Objects.requireNonNull(responsavel);
+        this.dataAvaliacao = LocalDateTime.now();
+        this.status = StatusSugestao.RETIRADA;
+    }
 }
