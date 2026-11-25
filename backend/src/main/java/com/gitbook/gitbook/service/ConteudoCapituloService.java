@@ -7,9 +7,9 @@ import java.util.UUID;
 
 public interface ConteudoCapituloService {
 
-    ConteudoCapituloResponseDTO buscarPorId(UUID idVersao);
+    ConteudoCapituloResponseDTO buscarPorId(UUID idVersao, UUID idSolicitante);
 
-    List<ConteudoCapituloResponseDTO> listarPorCapitulo(UUID idCapitulo);
+    List<ConteudoCapituloResponseDTO> listarPorCapitulo(UUID idCapitulo, UUID idSolicitante);
 
-    List<ConteudoCapituloResponseDTO> listarPorCommit(UUID idCommit);
+    List<ConteudoCapituloResponseDTO> listarPorCommit(UUID idCommit, UUID idSolicitante);
 }

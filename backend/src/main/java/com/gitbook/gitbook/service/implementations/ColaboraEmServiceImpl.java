@@ -8,12 +8,12 @@ import com.gitbook.gitbook.models.Livro;
 import com.gitbook.gitbook.models.Usuario;
 import com.gitbook.gitbook.models.enums.CargoColab;
 import com.gitbook.gitbook.repository.ColaboraEmRepository;
-import com.gitbook.gitbook.repository.LivroRepository;
 import com.gitbook.gitbook.repository.UsuarioRepository;
 import com.gitbook.gitbook.service.ColaboraEmService;
-import lombok.RequiredArgsConstructor;
-import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
 import com.gitbook.gitbook.service.exceptions.ConflitoNegocioException;
+import com.gitbook.gitbook.service.exceptions.RecursoNaoEncontradoException;
+import com.gitbook.gitbook.service.support.AcessoLivroService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,18 +26,30 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
     private final ColaboraEmRepository colaboraEmRepository;
     private final UsuarioRepository usuarioRepository;
-    private final LivroRepository livroRepository;
+    private final AcessoLivroService acesso;
 
     @Override
     @Transactional(readOnly = true)
-    public ColaboraEmResponseDTO buscarPorId(UUID idColaboracao) {
-        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idColaboracao));
+    public ColaboraEmResponseDTO buscarPorId(UUID idColaboracao, UUID idSolicitante) {
+        acesso.obterUsuario(idSolicitante);
+        ColaboraEm colaboracao = obterColaboracao(idColaboracao);
+        if (!idSolicitante.equals(colaboracao.getUsuario().getIdUsuario())
+                && !idSolicitante.equals(colaboracao.getLivro().getDono().getIdUsuario())) {
+            throw new RecursoNaoEncontradoException("Colaboração não encontrada.");
+        }
         return ColaboraEmResponseDTO.fromEntity(colaboracao);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ColaboraEmResponseDTO> listarPorLivro(UUID idLivro) {
+    public List<ColaboraEmResponseDTO> listarPorLivro(UUID idLivro, UUID idSolicitante) {
+        acesso.obterUsuario(idSolicitante);
+        Livro livro = acesso.obterLivro(idLivro);
+        if (!idSolicitante.equals(livro.getDono().getIdUsuario())) {
+            ColaboraEm vinculo = colaboraEmRepository.findByUsuario_IdUsuarioAndLivro_IdLivro(idSolicitante, idLivro)
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Livro não encontrado."));
+            return List.of(ColaboraEmResponseDTO.fromEntity(vinculo));
+        }
         return colaboraEmRepository.findByLivro_IdLivro(idLivro)
                 .stream()
                 .map(ColaboraEmResponseDTO::fromEntity)
@@ -46,16 +58,21 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ColaboraEmResponseDTO> listarPorUsuario(UUID idUsuario) {
-        return colaboraEmRepository.findByUsuario_IdUsuario(idUsuario)
-                .stream()
+    public List<ColaboraEmResponseDTO> listarPorUsuario(UUID idUsuario, UUID idSolicitante) {
+        acesso.obterUsuario(idSolicitante);
+        List<ColaboraEm> vinculos = idSolicitante.equals(idUsuario)
+                ? colaboraEmRepository.findByUsuario_IdUsuario(idUsuario)
+                : colaboraEmRepository.findByUsuario_IdUsuarioAndLivro_Dono_IdUsuario(idUsuario, idSolicitante);
+        return vinculos.stream()
                 .map(ColaboraEmResponseDTO::fromEntity)
                 .toList();
     }
 
     @Override
     @Transactional
-    public ColaboraEmResponseDTO cadastrar(ColaboraEmRequestDTO dto) {
+    public ColaboraEmResponseDTO cadastrar(ColaboraEmRequestDTO dto, UUID idSolicitante) {
+        Livro livro = acesso.bloquearLivro(dto.idLivro());
+        acesso.exigirGestor(livro, idSolicitante);
         boolean jaColabora = colaboraEmRepository.existsByUsuario_IdUsuarioAndLivro_IdLivro(dto.idUsuario(), dto.idLivro());
 
         if (jaColabora) {
@@ -67,7 +84,6 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
         }
 
         Usuario usuario = usuarioRepository.findById(dto.idUsuario()).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado: " + dto.idUsuario()));
-        Livro livro = livroRepository.findById(dto.idLivro()).orElseThrow(() -> new RecursoNaoEncontradoException("Livro não encontrado: " + dto.idLivro()));
 
         boolean ehDono = usuario.getIdUsuario().equals(livro.getDono().getIdUsuario());
 
@@ -88,8 +104,8 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
     @Transactional
     @Override
-    public ColaboraEmResponseDTO atualizarCargo(UUID idColaboracao, ColaboraEmUpdateRequestDTO dto) {
-        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idColaboracao));
+    public ColaboraEmResponseDTO atualizarCargo(UUID idColaboracao, ColaboraEmUpdateRequestDTO dto, UUID idSolicitante) {
+        ColaboraEm colaboracao = obterColaboracaoParaGestao(idColaboracao, idSolicitante);
 
         boolean ehDono = colaboracao.getUsuario().getIdUsuario().equals(colaboracao.getLivro().getDono().getIdUsuario());
 
@@ -110,8 +126,8 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
     @Override
     @Transactional
-    public boolean remover(UUID idColaboracao) {
-        ColaboraEm colaboracao = colaboraEmRepository.findById(idColaboracao).orElseThrow(() -> new RecursoNaoEncontradoException("Recurso não encontrado: " + idColaboracao));
+    public boolean remover(UUID idColaboracao, UUID idSolicitante) {
+        ColaboraEm colaboracao = obterColaboracaoParaGestao(idColaboracao, idSolicitante);
 
         boolean ehDono = colaboracao.getUsuario().getIdUsuario().equals(colaboracao.getLivro().getDono().getIdUsuario());
 
@@ -121,5 +137,18 @@ public class ColaboraEmServiceImpl implements ColaboraEmService {
 
         colaboraEmRepository.delete(colaboracao);
         return true;
+    }
+
+    private ColaboraEm obterColaboracaoParaGestao(UUID idColaboracao, UUID idSolicitante) {
+        UUID idLivro = colaboraEmRepository.findIdLivroByIdColaboracao(idColaboracao)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Colaboração não encontrada."));
+        Livro livro = acesso.bloquearLivro(idLivro);
+        acesso.exigirGestor(livro, idSolicitante);
+        return obterColaboracao(idColaboracao);
+    }
+
+    private ColaboraEm obterColaboracao(UUID idColaboracao) {
+        return colaboraEmRepository.findById(idColaboracao)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Colaboração não encontrada."));
     }
 }

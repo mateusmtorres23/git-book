@@ -1,5 +1,6 @@
 package com.gitbook.gitbook.controller;
 
+import com.gitbook.gitbook.controller.support.UsuarioAutenticadoResolver;
 import com.gitbook.gitbook.service.*;
 import com.gitbook.gitbook.service.exceptions.*;
 import com.gitbook.gitbook.dtos.colaboraEm.*;
@@ -27,8 +28,11 @@ class ControllerContractTest {
         colaboracoes = mock(ColaboraEmService.class);
         deadlines = mock(DeadlineService.class);
         conteudos = mock(ConteudoCapituloService.class);
-        mvc = MockMvcBuilders.standaloneSetup(new ColaboraEmController(colaboracoes),
-                new DeadlineController(deadlines), new ConteudoCapituloController(conteudos))
+        var usuarioAutenticado = mock(UsuarioAutenticadoResolver.class);
+        when(usuarioAutenticado.resolver(isNull())).thenReturn(id);
+        mvc = MockMvcBuilders.standaloneSetup(new ColaboraEmController(colaboracoes, usuarioAutenticado),
+                new DeadlineController(deadlines, usuarioAutenticado),
+                new ConteudoCapituloController(conteudos, usuarioAutenticado))
                 .setControllerAdvice(new ApiExceptionHandler()).build();
     }
 
@@ -65,23 +69,23 @@ class ControllerContractTest {
     }
 
     @Test void errosDoServicePossuemStatusEMensagem() throws Exception {
-        when(colaboracoes.buscarPorId(id)).thenThrow(new RecursoNaoEncontradoException("Ausente"));
-        when(deadlines.buscarPorId(id)).thenThrow(new RecursoNaoEncontradoException("Ausente"));
-        when(conteudos.buscarPorId(id)).thenThrow(new RecursoNaoEncontradoException("Ausente"));
+        when(colaboracoes.buscarPorId(id, id)).thenThrow(new RecursoNaoEncontradoException("Ausente"));
+        when(deadlines.buscarPorId(id, id)).thenThrow(new RecursoNaoEncontradoException("Ausente"));
+        when(conteudos.buscarPorId(id, id)).thenThrow(new RecursoNaoEncontradoException("Ausente"));
         for (String path : List.of("colaboracoes", "deadlines", "conteudos-capitulo"))
             mvc.perform(get("/api/" + path + "/" + id)).andExpect(status().isNotFound()).andExpect(jsonPath("$.detail").value("Ausente"));
-        doThrow(new ConflitoNegocioException("Conflito")).when(colaboracoes).remover(id);
+        doThrow(new ConflitoNegocioException("Conflito")).when(colaboracoes).remover(id, id);
         mvc.perform(delete("/api/colaboracoes/" + id)).andExpect(status().isConflict()).andExpect(jsonPath("$.detail").value("Conflito"));
     }
 
     @Test void sucessoPreservaContrato() throws Exception {
         var colaboracao = new ColaboraEmResponseDTO(id, id, id, CargoColab.ESCRITOR);
         var deadline = new DeadlineResponseDTO(id, id, id, "Título", null, StatusTask.PENDENTE, null, null, false);
-        when(colaboracoes.cadastrar(any())).thenReturn(colaboracao);
-        when(colaboracoes.atualizarCargo(eq(id), any())).thenReturn(colaboracao);
-        when(deadlines.cadastrar(any())).thenReturn(deadline);
-        when(deadlines.atualizar(eq(id), any())).thenReturn(deadline);
-        when(deadlines.atualizarStatus(eq(id), any())).thenReturn(deadline);
+        when(colaboracoes.cadastrar(any(), eq(id))).thenReturn(colaboracao);
+        when(colaboracoes.atualizarCargo(eq(id), any(), eq(id))).thenReturn(colaboracao);
+        when(deadlines.cadastrar(any(), eq(id))).thenReturn(deadline);
+        when(deadlines.atualizar(eq(id), any(), eq(id))).thenReturn(deadline);
+        when(deadlines.atualizarStatus(eq(id), any(), eq(id))).thenReturn(deadline);
         String colab = "{\"idUsuario\":\"" + id + "\",\"idLivro\":\"" + id + "\",\"cargo\":\"ESCRITOR\"}";
         String body = "{\"idUsuario\":\"" + id + "\",\"idLivro\":\"" + id + "\",\"titulo\":\"Título\",\"dataLimite\":\"2026-01-01T12:00:00\"}";
         mvc.perform(post("/api/colaboracoes").contentType(MediaType.APPLICATION_JSON).content(colab))

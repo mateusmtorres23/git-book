@@ -9,17 +9,17 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DeadlineService {
-    DeadlineResponseDTO buscarPorId(UUID idDeadline);
+    DeadlineResponseDTO buscarPorId(UUID idDeadline, UUID idSolicitante);
 
-    List<DeadlineResponseDTO> listarPorLivro(UUID idLivro);
+    List<DeadlineResponseDTO> listarPorLivro(UUID idLivro, UUID idSolicitante);
 
-    List<DeadlineResponseDTO> listarPorUsuario(UUID idUsuario);
+    List<DeadlineResponseDTO> listarPorUsuario(UUID idUsuario, UUID idSolicitante);
 
-    DeadlineResponseDTO cadastrar(DeadlineRequestDTO dto);
+    DeadlineResponseDTO cadastrar(DeadlineRequestDTO dto, UUID idSolicitante);
 
-    DeadlineResponseDTO atualizar(UUID idDeadline, DeadlineUpdateRequestDTO dto);
+    DeadlineResponseDTO atualizar(UUID idDeadline, DeadlineUpdateRequestDTO dto, UUID idSolicitante);
 
-    DeadlineResponseDTO atualizarStatus(UUID idDeadline, DeadlineStatusRequestDTO dto);
+    DeadlineResponseDTO atualizarStatus(UUID idDeadline, DeadlineStatusRequestDTO dto, UUID idSolicitante);
 
-    boolean remover(UUID idDeadline);
+    boolean remover(UUID idDeadline, UUID idSolicitante);
 }
